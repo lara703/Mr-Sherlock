@@ -554,10 +554,36 @@
  .kt-check { width: 16px; height: 16px; border-radius: 4px; border: 2px solid rgba(255,255,255,0.25); flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 0.55rem; cursor: pointer; transition: all 0.18s; }
  .kanban-task.done .kt-check { background: var(--b); border-color: var(--b); color: white; }
  .kt-body { flex: 1; min-width: 0; }
- .kt-txt { font-size: 0.78rem; font-weight: 700; line-height: 1.3; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
  .kt-cat { display: none; }
  .kt-del { background: none; border: none; color: rgba(255,255,255,0.15); cursor: pointer; font-size: 0.75rem; padding: 1px 3px; border-radius: 4px; flex-shrink: 0; transition: all 0.18s; line-height: 1; }
  .kt-del:hover { color: var(--red); }
+
+ /* ── Task expand (notes / today / recurring) ── */
+ .kt-txt { font-size: 0.78rem; font-weight: 700; line-height: 1.3; overflow: hidden; text-overflow: ellipsis; cursor: pointer; }
+ .kanban-task { flex-direction: column; align-items: stretch !important; }
+ .kt-row { display: flex; align-items: center; gap: 7px; }
+ .kt-expand { padding-top: 8px; border-top: 1px solid rgba(255,255,255,0.06); display: flex; flex-direction: column; gap: 8px; }
+ .kt-notes { min-height: 54px; resize: none; font-size: 0.75rem !important; padding: 7px 9px !important; border-radius: 8px !important; width: 100%; }
+ .kt-meta { display: flex; gap: 6px; flex-wrap: wrap; }
+ .kt-flag, .kt-recur { font-size: 0.63rem; font-weight: 800; padding: 3px 9px; border-radius: 50px; border: 1px solid rgba(255,255,255,0.12); background: rgba(255,255,255,0.06); color: var(--sub); cursor: pointer; font-family: 'Nunito', sans-serif; transition: all 0.15s; }
+ .kt-flag.on { background: rgba(231,76,60,0.2); color: #ff8a80; border-color: rgba(231,76,60,0.4); }
+ .kt-recur.on { background: rgba(255,140,0,0.15); color: var(--yellow); border-color: rgba(255,140,0,0.3); }
+ .task-today .kt-row { border-left: 3px solid var(--b); padding-left: 5px; margin-left: -2px; border-radius: 2px; }
+ .today-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--b); flex-shrink: 0; }
+ .recur-ico { font-size: 0.6rem; color: var(--yellow); flex-shrink: 0; }
+
+ /* ── Quick capture FAB ── */
+ .quick-fab { position: fixed; bottom: max(90px, calc(env(safe-area-inset-bottom) + 80px)); right: 18px; width: 54px; height: 54px; border-radius: 50%; background: linear-gradient(135deg, var(--a), var(--c)); border: none; color: white; font-size: 1.7rem; font-weight: 300; cursor: pointer; box-shadow: 0 4px 22px rgba(192,57,43,0.5); z-index: 40; display: flex; align-items: center; justify-content: center; transition: transform 0.18s, box-shadow 0.18s; line-height: 1; }
+ .quick-fab:hover { transform: scale(1.1); box-shadow: 0 6px 28px rgba(192,57,43,0.65); }
+ .quick-modal { position: fixed; inset: 0; z-index: 150; display: none; align-items: flex-end; justify-content: center; background: rgba(0,0,0,0.6); }
+ .quick-modal.on { display: flex; }
+ .quick-box { background: var(--card2); border: 1.5px solid var(--border); border-radius: 20px 20px 0 0; padding: 20px 18px; padding-bottom: max(20px, env(safe-area-inset-bottom)); width: 100%; max-width: 520px; display: flex; flex-direction: column; gap: 12px; box-shadow: 0 -8px 40px rgba(0,0,0,0.5); }
+ .quick-box-lbl { font-size: 0.72rem; font-weight: 800; color: var(--sub); text-transform: uppercase; letter-spacing: 1.5px; }
+
+ /* ── Mic ── */
+ .mic-btn { background: rgba(255,255,255,0.07); border: 1.5px solid rgba(255,255,255,0.1); border-radius: 11px; color: var(--sub); padding: 9px 13px; font-family: 'Nunito', sans-serif; font-weight: 800; font-size: 0.82rem; cursor: pointer; transition: all 0.18s; white-space: nowrap; flex-shrink: 0; }
+ .mic-btn.active { background: rgba(231,76,60,0.2); border-color: var(--b); color: #ff8a80; animation: pulse 1.2s infinite; }
+ @keyframes pulse { 0%,100%{box-shadow:0 0 0 0 rgba(231,76,60,0.4)} 50%{box-shadow:0 0 0 6px rgba(231,76,60,0)} }
 
  /* ── Settings modal ── */
  .settings-modal {
@@ -613,6 +639,26 @@
       <button class="btn btn-g" onclick="closeSettings()">Close</button>
     </div>
     <p style="font-size:0.7rem;opacity:0.5">Get your key at console.anthropic.com → API Keys</p>
+  </div>
+</div>
+
+<!-- Quick capture FAB -->
+<button class="quick-fab" onclick="openQuick()" title="Quick add task">+</button>
+
+<!-- Quick capture modal -->
+<div class="quick-modal" id="quickModal" onclick="if(event.target===this)closeQuick()">
+  <div class="quick-box">
+    <div class="quick-box-lbl">Quick add task</div>
+    <input type="text" id="quickIn" placeholder="What do you need to do?" onkeydown="if(event.key==='Enter')addQuick()">
+    <div class="row">
+      <select id="quickPri" style="width:auto;min-width:100px">
+        <option value="urgent">Urgent</option>
+        <option value="normal" selected>Normal</option>
+        <option value="low">Low</option>
+      </select>
+      <button class="btn btn-p" style="flex:1" onclick="addQuick()">Add task</button>
+      <button class="btn btn-g" onclick="closeQuick()">Cancel</button>
+    </div>
   </div>
 </div>
 
@@ -736,7 +782,8 @@
   <div class="label">DONT STRESS! Put all thoughts here, let me organise this for you ;)</div>
   <textarea class="dump" id="dumpTxt" placeholder="e.g. need to call mum back, design the logo, my back hurts, post something on instagram, pick up food, that melody idea from this morning, reply to sarah…"></textarea>
   <div class="row" style="margin-top:10px">
-   <button class="btn btn-p" onclick="organiseThoughts()">Organise into tasks</button>
+   <button class="btn btn-p" style="flex:1" onclick="organiseThoughts()">Organise into tasks</button>
+   <button class="mic-btn" id="micBtn" onclick="toggleMic()">Mic</button>
    <button class="btn btn-g" onclick="clearRant()">Clear</button>
   </div>
  </div>
@@ -869,6 +916,10 @@ function checkNewDay(){
   if(S.lastDate !== today){
     if(S.lastDate) S.streak++;
     S.doneToday = 0; S.focusMins = 0; S.focusSess = 0; S.moods = [];
+    // Reset daily recurring tasks
+    S.tasks.forEach(t=>{ if(t.done && t.recurring==='daily') t.done = false; });
+    // Reset weekly recurring on Mondays
+    if(new Date().getDay()===1) S.tasks.forEach(t=>{ if(t.done && t.recurring==='weekly') t.done = false; });
     S.lastDate = today;
     save();
   }
@@ -934,18 +985,61 @@ function addTask(){
   document.getElementById('col-normal').scrollIntoView({behavior:'smooth', block:'nearest'});
 }
 
+let expandedTasks = new Set();
+
+function recurLabel(r){ return r==='daily'?'↻ Daily':r==='weekly'?'↻ Weekly':'↻ No repeat'; }
+
 function taskCard(t){
-  return `<div class="kanban-task ${t.done?'done':''}" id="kt${t.id}"
+  const exp = expandedTasks.has(t.id);
+  return `<div class="kanban-task ${t.done?'done':''} ${t.today?'task-today':''}" id="kt${t.id}"
     draggable="true"
     ondragstart="onDragStart(event,${t.id})"
     ondragend="onDragEnd(event)">
-    <div class="kt-check" onclick="toggleTask(${t.id})">${t.done?'&#10003;':''}</div>
-    <div class="kt-body" onclick="toggleTask(${t.id})">
-      <div class="kt-txt">${esc(t.text)}</div>
-      <div class="kt-cat">${catLbl(t.cat)}</div>
+    <div class="kt-row">
+      <div class="kt-check" onclick="toggleTask(${t.id})">${t.done?'&#10003;':''}</div>
+      <div class="kt-body" onclick="expandTask(${t.id})" style="cursor:pointer">
+        <div style="display:flex;align-items:center;gap:5px">
+          <div class="kt-txt">${esc(t.text)}</div>
+          ${t.today?'<div class="today-dot"></div>':''}
+          ${t.recurring?'<span class="recur-ico">↻</span>':''}
+        </div>
+      </div>
+      <button class="kt-del" onclick="delTask(${t.id})">&#x2715;</button>
     </div>
-    <button class="kt-del" onclick="delTask(${t.id})">&#x2715;</button>
+    <div class="kt-expand" id="ktx${t.id}" style="display:${exp?'flex':'none'}">
+      <textarea class="kt-notes" placeholder="Add notes or a link…" onclick="event.stopPropagation()" oninput="saveNotes(${t.id},this.value)">${esc(t.notes||'')}</textarea>
+      <div class="kt-meta">
+        <button class="kt-flag ${t.today?'on':''}" onclick="event.stopPropagation();toggleToday(${t.id})">${t.today?'Today ✓':'Mark as today'}</button>
+        <button class="kt-recur ${t.recurring?'on':''}" onclick="event.stopPropagation();cycleRecurring(${t.id})">${recurLabel(t.recurring)}</button>
+      </div>
+    </div>
   </div>`;
+}
+
+function expandTask(id){
+  if(expandedTasks.has(id)) expandedTasks.delete(id);
+  else expandedTasks.add(id);
+  const el = document.getElementById('ktx'+id);
+  if(el) el.style.display = expandedTasks.has(id) ? 'flex' : 'none';
+}
+
+function saveNotes(id, val){
+  const t = S.tasks.find(t=>t.id===id); if(!t) return;
+  t.notes = val; save();
+}
+
+function toggleToday(id){
+  const t = S.tasks.find(t=>t.id===id); if(!t) return;
+  t.today = !t.today; save(); renderTasks();
+}
+
+function cycleRecurring(id){
+  const t = S.tasks.find(t=>t.id===id); if(!t) return;
+  const cycle = [null,'daily','weekly'];
+  const i = cycle.indexOf(t.recurring);
+  t.recurring = cycle[(i+1)%cycle.length];
+  save(); renderTasks();
+  toast(t.recurring ? 'Set to repeat '+t.recurring : 'Repeat removed');
 }
 
 function renderTasks(){
@@ -972,7 +1066,12 @@ function toggleTask(id){
 }
 
 function delTask(id){ S.tasks=S.tasks.filter(t=>t.id!==id); save(); renderTasks(); }
-function clearDone(){ S.tasks=S.tasks.filter(t=>!t.done); save(); renderTasks(); toast('Cleared'); }
+function clearDone(){
+  // Recurring done tasks get reset instead of deleted
+  S.tasks.forEach(t=>{ if(t.done && t.recurring) t.done = false; });
+  S.tasks = S.tasks.filter(t=>!t.done);
+  save(); renderTasks(); toast('Cleared');
+}
 
 // ── Drag and drop (mouse) ──
 let dragId = null;
@@ -1723,6 +1822,71 @@ function esc(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g
 function catLbl(c){return{personal:' Personal',work:' Work',health:' Health',social:' Social'}[c]||c;}
 function priLbl(p){return{urgent:' Urgent',normal:' Normal',low:' Low'}[p]||p;}
 function flash(id){const el=document.getElementById(id);el.style.borderColor='var(--red)';setTimeout(()=>el.style.borderColor='',700);}
+
+// ── Voice input ───────────────────────────────────────
+let micActive = false;
+let recognition = null;
+let micFinal = '';
+
+function toggleMic(){
+  if(micActive){ if(recognition) recognition.stop(); return; }
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if(!SR){ toast('Voice not supported on this browser'); return; }
+  recognition = new SR();
+  recognition.continuous = true;
+  recognition.interimResults = true;
+  recognition.lang = 'en-GB';
+  micFinal = document.getElementById('dumpTxt').value;
+
+  recognition.onstart = ()=>{
+    micActive = true;
+    const btn = document.getElementById('micBtn');
+    btn.textContent = 'Stop'; btn.classList.add('active');
+    toast('Listening — speak your rant');
+  };
+
+  recognition.onresult = e=>{
+    let interim = '';
+    for(let i = e.resultIndex; i < e.results.length; i++){
+      if(e.results[i].isFinal) micFinal += (micFinal?', ':'')+e.results[i][0].transcript.trim();
+      else interim = e.results[i][0].transcript;
+    }
+    document.getElementById('dumpTxt').value = micFinal + (interim ? ' '+interim : '');
+  };
+
+  recognition.onend = ()=>{
+    micActive = false;
+    const btn = document.getElementById('micBtn');
+    btn.textContent = 'Mic'; btn.classList.remove('active');
+    document.getElementById('dumpTxt').value = micFinal;
+  };
+
+  recognition.onerror = e=>{
+    micActive = false;
+    const btn = document.getElementById('micBtn');
+    btn.textContent = 'Mic'; btn.classList.remove('active');
+    if(e.error !== 'aborted') toast('Mic error: '+e.error);
+  };
+
+  recognition.start();
+}
+
+// ── Quick capture ──────────────────────────────────────
+function openQuick(){
+  document.getElementById('quickModal').classList.add('on');
+  setTimeout(()=>document.getElementById('quickIn').focus(), 80);
+}
+function closeQuick(){
+  document.getElementById('quickModal').classList.remove('on');
+  document.getElementById('quickIn').value = '';
+}
+function addQuick(){
+  const v = document.getElementById('quickIn').value.trim(); if(!v) return;
+  const pri = document.getElementById('quickPri').value;
+  S.tasks.unshift({ id: Date.now(), text: v, cat: guessCat(v), pri, done: false, notes:'', today: false, recurring: null });
+  save(); renderTasks(); closeQuick();
+  toast('Task added');
+}
 
 // ── Init ───────────────────────────────────────────────
 function startApp(){
