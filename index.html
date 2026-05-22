@@ -623,6 +623,122 @@
  }
  .settings-gear:hover { background: rgba(255,255,255,0.13); }
 
+ /* ══════════════════════════════════════
+    ANIMATIONS
+ ══════════════════════════════════════ */
+
+ /* ── Keyframes ── */
+ @keyframes slideInUp    { from { opacity:0; transform:translateY(22px); } to { opacity:1; transform:translateY(0); } }
+ @keyframes slideInLeft  { from { opacity:0; transform:translateX(-22px); } to { opacity:1; transform:translateX(0); } }
+ @keyframes slideInRight { from { opacity:0; transform:translateX(22px); } to { opacity:1; transform:translateX(0); } }
+ @keyframes fadeInScale  { from { opacity:0; transform:scale(0.88); } to { opacity:1; transform:scale(1); } }
+ @keyframes popIn        { 0% { opacity:0; transform:scale(0.4); } 65% { transform:scale(1.1); } 100% { opacity:1; transform:scale(1); } }
+ @keyframes taskIn       { 0% { opacity:0; transform:translateX(-18px) scale(0.96); } 60% { transform:translateX(3px) scale(1.02); } 100% { opacity:1; transform:translateX(0) scale(1); } }
+ @keyframes taskDone     { 0%,100% { transform:scale(1); } 40% { transform:scale(1.05); } 70% { transform:scale(0.97); } }
+ @keyframes taskOut      { 0% { opacity:1; transform:translateX(0); max-height:120px; margin-bottom:8px; } 100% { opacity:0; transform:translateX(80px) scaleX(0.7); max-height:0; margin-bottom:0; padding-top:0; padding-bottom:0; } }
+ @keyframes floatY       { 0%,100% { transform:translateY(0px); } 50% { transform:translateY(-5px); } }
+ @keyframes breatheGlow  { 0%,100% { box-shadow:0 4px 22px rgba(192,57,43,0.45); } 50% { box-shadow:0 6px 32px rgba(231,76,60,0.75); } }
+ @keyframes ringPulse    { 0%,100% { box-shadow:0 0 30px rgba(192,57,43,0.2); } 50% { box-shadow:0 0 60px rgba(231,76,60,0.55); } }
+ @keyframes shimmerText  { 0% { background-position:200% center; } 100% { background-position:-200% center; } }
+ @keyframes numPop       { 0%,100% { transform:scale(1); } 45% { transform:scale(1.35); } }
+ @keyframes spinOnce     { from { transform:rotate(0deg); } to { transform:rotate(360deg); } }
+ @keyframes ripple       { from { transform:scale(0); opacity:0.45; } to { transform:scale(5); opacity:0; } }
+ @keyframes tabOn        { 0% { transform:scale(0.94); } 60% { transform:scale(1.04); } 100% { transform:scale(1); } }
+ @keyframes cardIn       { from { opacity:0; transform:translateY(14px) scale(0.98); } to { opacity:1; transform:translateY(0) scale(1); } }
+ @keyframes toastBounce  { 0% { transform:translateX(-50%) translateY(80px); } 60% { transform:translateX(-50%) translateY(-6px); } 100% { transform:translateX(-50%) translateY(0); } }
+ @keyframes dotBlink     { 0%,100% { opacity:1; } 50% { opacity:0.3; } }
+ @keyframes energyPop    { 0%,100%{ transform:scale(1); } 50%{ transform:scale(1.4); color:#ff6b6b; } }
+ @keyframes fabIdle      { 0%,100%{ transform:scale(1) rotate(0deg); } 25%{ transform:scale(1.05) rotate(-3deg); } 75%{ transform:scale(1.05) rotate(3deg); } }
+ @keyframes goalIn       { 0% { opacity:0; transform:translateX(-16px); } 100% { opacity:1; transform:translateX(0); } }
+ @keyframes ideaIn       { 0% { opacity:0; transform:scale(0.92) translateY(8px); } 100% { opacity:1; transform:scale(1) translateY(0); } }
+ @keyframes previewIn    { 0% { opacity:0; transform:translateY(12px) scale(0.97); } 100% { opacity:1; transform:translateY(0) scale(1); } }
+ @keyframes checkPop     { 0%,100%{ transform:scale(1); } 40%{ transform:scale(0); } 60%{ transform:scale(1.25); } }
+
+ /* ── Panel stagger ── */
+ .panel.on { animation: none; }
+ .panel.on > *           { animation: cardIn 0.32s cubic-bezier(0.22,1,0.36,1) both; }
+ .panel.on > *:nth-child(1) { animation-delay: 0s; }
+ .panel.on > *:nth-child(2) { animation-delay: 0.07s; }
+ .panel.on > *:nth-child(3) { animation-delay: 0.13s; }
+ .panel.on > *:nth-child(4) { animation-delay: 0.18s; }
+ .panel.on > *:nth-child(5) { animation-delay: 0.23s; }
+
+ /* ── Tab active ── */
+ .tab { transition: all 0.22s cubic-bezier(0.34,1.56,0.64,1) !important; }
+ .tab.on { animation: tabOn 0.3s cubic-bezier(0.34,1.56,0.64,1); }
+
+ /* ── Header title shimmer ── */
+ .header-left h1 {
+   background: linear-gradient(90deg, #e74c3c 0%, #ff8a80 30%, #c0392b 50%, #ff8a80 70%, #e74c3c 100%);
+   background-size: 200% auto;
+   -webkit-background-clip: text;
+   -webkit-text-fill-color: transparent;
+   background-clip: text;
+   animation: shimmerText 4s linear infinite;
+ }
+
+ /* ── Cards ── */
+ .card { transition: transform 0.22s ease, box-shadow 0.22s ease; }
+ .card:hover { transform: translateY(-2px); box-shadow: 0 10px 32px rgba(192,57,43,0.18); }
+
+ /* ── Kanban task animations ── */
+ .kanban-task.task-new      { animation: taskIn 0.38s cubic-bezier(0.34,1.56,0.64,1) both; }
+ .kanban-task.task-done-anim { animation: taskDone 0.35s ease; }
+ .kanban-task.task-out      { animation: taskOut 0.28s ease forwards; pointer-events:none; overflow:hidden; }
+ .kt-check { transition: background 0.18s, border-color 0.18s, transform 0.18s; }
+ .kt-check:active { transform: scale(0.8) !important; }
+ .kt-check.pop { animation: checkPop 0.32s cubic-bezier(0.34,1.56,0.64,1); }
+
+ /* ── Buttons ripple & press ── */
+ .btn { position: relative; overflow: hidden; }
+ .btn:active { transform: scale(0.95) !important; transition: transform 0.08s !important; }
+ .ripple-circle { position:absolute; border-radius:50%; background:rgba(255,255,255,0.25); pointer-events:none; transform:scale(0); animation: ripple 0.55s ease-out forwards; }
+
+ /* ── FAB ── */
+ .quick-fab { animation: breatheGlow 2.8s ease-in-out infinite; }
+ .quick-fab:hover { animation: fabIdle 0.6s ease-in-out infinite; }
+ .quick-fab:active { transform: scale(0.88) !important; transition: transform 0.1s !important; }
+
+ /* ── Gear spin on click ── */
+ .settings-gear.spinning { animation: spinOnce 0.45s ease; }
+
+ /* ── Timer ring pulse ── */
+ .ring.ticking { animation: ringPulse 2s ease-in-out infinite; }
+
+ /* ── Progress bar glow ── */
+ .prog-fill { box-shadow: 0 0 10px rgba(231,76,60,0.45); }
+
+ /* ── Stats number pop ── */
+ .chip b.popping { animation: numPop 0.35s cubic-bezier(0.34,1.56,0.64,1); }
+
+ /* ── Modals ── */
+ .quick-modal.on .quick-box      { animation: slideInUp 0.32s cubic-bezier(0.34,1.56,0.64,1); }
+ .settings-modal.on .settings-box { animation: fadeInScale 0.28s cubic-bezier(0.34,1.56,0.64,1); }
+
+ /* ── Thought preview ── */
+ #thoughtPreviewCard[style*="block"] { animation: previewIn 0.32s cubic-bezier(0.22,1,0.36,1); }
+ .task { animation: slideInLeft 0.28s ease both; }
+
+ /* ── Toast ── */
+ .toast.on { animation: toastBounce 0.45s cubic-bezier(0.34,1.56,0.64,1) forwards; }
+
+ /* ── Goals & Ideas ── */
+ .goal-item  { transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease; }
+ .goal-item:hover { transform: translateX(4px); box-shadow: 0 4px 16px rgba(192,57,43,0.12); }
+ .goal-item.goal-new  { animation: goalIn 0.32s cubic-bezier(0.22,1,0.36,1) both; }
+
+ /* ── Mic active blink ── */
+ .mic-btn.active::before { content:''; display:inline-block; width:7px; height:7px; border-radius:50%; background:var(--b); margin-right:6px; animation: dotBlink 0.9s ease infinite; }
+
+ /* ── Energy value pop ── */
+ #eVal.popping { animation: energyPop 0.3s ease; }
+
+ /* ── Drag over glow ── */
+ .kanban-drop.drag-over { box-shadow: inset 0 0 20px rgba(192,57,43,0.1); }
+
+ /* ── Reward pop ── */
+ .reward.on { animation: popIn 0.4s cubic-bezier(0.34,1.56,0.64,1) forwards; transform-origin:center; }
+
 </style>
 </head>
 <body>
@@ -874,6 +990,9 @@ function openSettings(){
   document.getElementById('keyInput').value = k;
   updateKeyStatus();
   document.getElementById('settingsModal').classList.add('on');
+  // spin gear
+  const g = document.querySelector('.settings-gear');
+  if(g){ g.classList.add('spinning'); setTimeout(()=>g.classList.remove('spinning'),500); }
 }
 function closeSettings(){ document.getElementById('settingsModal').classList.remove('on'); }
 function updateKeyStatus(){
@@ -1062,13 +1181,26 @@ function renderTasks(){
 
 function toggleTask(id){
   const t = S.tasks.find(t=>t.id===id); if(!t) return;
+  // Animate the check before re-render
+  const check = document.querySelector('#kt'+id+' .kt-check');
+  if(check){ check.classList.add('pop'); setTimeout(()=>check.classList.remove('pop'),350); }
   t.done = !t.done;
   if(t.done){ S.pts += t.pri==='urgent'?30:t.pri==='low'?10:20; S.doneToday++; showReward(t.text); }
   else { S.pts = Math.max(0,S.pts-10); S.doneToday = Math.max(0,S.doneToday-1); }
-  save(); renderTasks(); updateStats();
+  save();
+  // Animate the task card, then re-render
+  const el = document.getElementById('kt'+id);
+  if(el){ el.classList.add('task-done-anim'); setTimeout(()=>{ renderTasks(); updateStats(); }, 200); }
+  else { renderTasks(); updateStats(); }
 }
 
-function delTask(id){ S.tasks=S.tasks.filter(t=>t.id!==id); save(); renderTasks(); }
+function delTask(id){
+  const el = document.getElementById('kt'+id);
+  if(el){
+    el.classList.add('task-out');
+    setTimeout(()=>{ S.tasks=S.tasks.filter(t=>t.id!==id); save(); renderTasks(); }, 260);
+  } else { S.tasks=S.tasks.filter(t=>t.id!==id); save(); renderTasks(); }
+}
 function clearDone(){
   // Recurring done tasks get reset instead of deleted
   S.tasks.forEach(t=>{ if(t.done && t.recurring) t.done = false; });
@@ -1176,9 +1308,11 @@ function bindTouchDrag(){
 // ── Goals & Ideas ──────────────────────────────────────
 function addGoal(){
  const v=document.getElementById('gIn').value.trim(); if(!v) return;
- S.goals.unshift({id:Date.now(),text:v,area:document.getElementById('gArea').value,done:false});
+ const id=Date.now();
+ S.goals.unshift({id,text:v,area:document.getElementById('gArea').value,done:false});
  document.getElementById('gIn').value='';
  save(); renderGoals();
+ requestAnimationFrame(()=>{ const el=document.querySelector('.goal-item'); if(el){ el.classList.add('goal-new'); setTimeout(()=>el.classList.remove('goal-new'),400); } });
 }
 
 function renderGoals(){
@@ -1470,8 +1604,11 @@ function confirmThoughts(){
   if(!pendingThoughts.length) return;
   const count=pendingThoughts.length;
   let tid = Date.now();
-  pendingThoughts.forEach(t=>S.tasks.unshift({...t,id:tid++}));
+  const newIds = [];
+  pendingThoughts.forEach(t=>{ const id=tid++; S.tasks.unshift({...t,id}); newIds.push(id); });
   save(); renderTasks();
+  // stagger-animate each new task card
+  newIds.forEach((id,i)=>{ setTimeout(()=>{ const el=document.getElementById('kt'+id); if(el){ el.classList.remove('task-new'); void el.offsetWidth; el.classList.add('task-new'); } }, i*55); });
   S.dump=''; document.getElementById('dumpTxt').value='';
   pendingThoughts=[]; hidePreviews();
   toast(count+' tasks added');
@@ -1525,6 +1662,7 @@ function renderMoodLog(){
 
 function updateE(v){
   document.getElementById('eVal').textContent=v+' / 10';
+  popEl('eVal');
   renderEnergyAdvice(parseInt(v));
 }
 
@@ -1688,17 +1826,20 @@ function toggleTimer(){ tOn ? pauseTimer() : startTimer(); }
 
 function startTimer(){
  tOn=true; document.getElementById('tBtn').textContent='⏸ Pause';
+ document.getElementById('ring').classList.add('ticking');
  tInt=setInterval(()=>{ tRem--; renderTimer(); if(tRem<=0) timerDone(); },1000);
 }
 
 function pauseTimer(){
  tOn=false; clearInterval(tInt);
  document.getElementById('tBtn').textContent='▶ Resume';
+ document.getElementById('ring').classList.remove('ticking');
 }
 
 function resetTimer(){
  clearInterval(tInt); tOn=false; tRem=tDur;
  document.getElementById('tBtn').textContent='▶ Start';
+ document.getElementById('ring').classList.remove('ticking');
  renderTimer();
 }
 
@@ -1784,7 +1925,10 @@ function confetti(){
 // ── Stats & levels ─────────────────────────────────────
 const levels=[[0,'Level 1'],[100,'Level 2'],[300,'Level 3'],[600,'Level 4'],[1000,'Level 5'],[1500,'Level 6'],[2500,'Level 7'],[4000,'Level 8'],[6000,'Level 9'],[9000,'Level 10']];
 
+function popEl(id){ const el=document.getElementById(id); if(!el) return; el.classList.remove('popping'); void el.offsetWidth; el.classList.add('popping'); setTimeout(()=>el.classList.remove('popping'),400); }
+
 function updateStats(){
+ const prev = { pts:+document.getElementById('sPoints').textContent, done:+document.getElementById('sDone').textContent };
  document.getElementById('sPoints').textContent=S.pts;
  document.getElementById('sStreak').textContent=S.streak;
  document.getElementById('sDone').textContent=S.doneToday;
@@ -1792,6 +1936,8 @@ function updateStats(){
  document.getElementById('sLevel').textContent=lv[1];
  document.getElementById('fMins').textContent=S.focusMins;
  document.getElementById('fSess').textContent=S.focusSess;
+ if(S.pts !== prev.pts) popEl('sPoints');
+ if(S.doneToday !== prev.done) popEl('sDone');
 }
 
 // ── Tabs ───────────────────────────────────────────────
@@ -1886,12 +2032,27 @@ function closeQuick(){
 function addQuick(){
   const v = document.getElementById('quickIn').value.trim(); if(!v) return;
   const pri = document.getElementById('quickPri').value;
-  S.tasks.unshift({ id: Date.now(), text: v, cat: guessCat(v), pri, done: false, notes:'', today: false, recurring: null });
+  const id = Date.now();
+  S.tasks.unshift({ id, text: v, cat: guessCat(v), pri, done: false, notes:'', today: false, recurring: null, createdAt: new Date().toISOString() });
   save(); renderTasks(); closeQuick();
   toast('Task added');
+  requestAnimationFrame(()=>{ const el=document.getElementById('kt'+id); if(el) el.classList.add('task-new'); });
 }
 
 // ── Init ───────────────────────────────────────────────
+// ── Ripple on all buttons ──────────────────────────────
+document.addEventListener('click', e=>{
+  const btn = e.target.closest('.btn, .quick-fab, .tab, .mic-btn');
+  if(!btn) return;
+  const r = document.createElement('span');
+  r.className = 'ripple-circle';
+  const rect = btn.getBoundingClientRect();
+  const size = Math.max(rect.width, rect.height);
+  r.style.cssText = `width:${size}px;height:${size}px;left:${e.clientX-rect.left-size/2}px;top:${e.clientY-rect.top-size/2}px`;
+  btn.appendChild(r);
+  setTimeout(()=>r.remove(), 600);
+});
+
 function updateClock(){
   const now = new Date();
   const days = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
