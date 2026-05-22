@@ -1,0 +1,1474 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Mr. Sherlock">
+<meta name="theme-color" content="#0a0a0a">
+<title>Mr. Sherlock</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+ @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap');
+
+ :root {
+ --a: #c0392b;
+ --b: #e74c3c;
+ --c: #ff6b6b;
+ --d: #ff4444;
+ --e: #e53e3e;
+ --yellow: #ff8c00;
+ --red: #e74c3c;
+ --bg: #0a0a0a;
+ --bg2: #111111;
+ --card: #1a1a1a;
+ --card2: #222222;
+ --border: rgba(255,255,255,0.07);
+ --text: #f5f5f5;
+ --sub: #888888;
+ }
+
+ * { margin: 0; padding: 0; box-sizing: border-box; }
+
+ body {
+ font-family: 'Nunito', sans-serif;
+ background: var(--bg);
+ color: var(--text);
+ min-height: 100vh;
+ overflow-x: hidden;
+ }
+
+ body::before {
+ content: '';
+ position: fixed;
+ inset: 0;
+ background:
+ radial-gradient(ellipse at 15% 15%, rgba(192,57,43,0.1) 0%, transparent 55%),
+ radial-gradient(ellipse at 85% 85%, rgba(231,76,60,0.07) 0%, transparent 55%);
+ pointer-events: none;
+ z-index: 0;
+ }
+
+ .wrap { max-width: 860px; margin: 0 auto; padding: 0 16px 40px; position: relative; z-index: 1; }
+
+ /* ── Header ── */
+ header { padding: 24px 0 8px; display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+
+ .header-left h1 {
+ font-size: 1.5rem;
+ font-weight: 900;
+ background: linear-gradient(135deg, #e74c3c, #c0392b);
+ -webkit-background-clip: text;
+ -webkit-text-fill-color: transparent;
+ background-clip: text;
+ }
+
+ .header-left p { font-size: 0.78rem; color: var(--sub); font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; margin-top: 2px; }
+
+ .stats-row { display: flex; gap: 8px; flex-wrap: wrap; }
+
+ .chip {
+ background: var(--card);
+ border: 1px solid var(--border);
+ border-radius: 50px;
+ padding: 6px 14px;
+ font-size: 0.75rem;
+ font-weight: 800;
+ display: flex;
+ align-items: center;
+ gap: 5px;
+ color: var(--sub);
+ }
+ .chip b { color: var(--yellow); font-size: 0.85rem; }
+
+ /* ── Tabs ── */
+ .tabs {
+ display: flex;
+ gap: 4px;
+ background: var(--card);
+ padding: 5px;
+ border-radius: 14px;
+ margin: 14px 0;
+ border: 1px solid var(--border);
+ overflow-x: auto;
+ }
+
+ .tab {
+ flex: 1;
+ min-width: 80px;
+ background: transparent;
+ border: none;
+ color: var(--sub);
+ padding: 9px 12px;
+ border-radius: 10px;
+ cursor: pointer;
+ font-family: 'Nunito', sans-serif;
+ font-weight: 800;
+ font-size: 0.8rem;
+ transition: all 0.18s;
+ white-space: nowrap;
+ text-align: center;
+ }
+ .tab.on { background: linear-gradient(135deg, var(--a), var(--c)); color: white; box-shadow: 0 3px 12px rgba(192,57,43,0.4); }
+ .tab:hover:not(.on) { color: var(--text); background: rgba(255,255,255,0.06); }
+
+ /* ── Panels ── */
+ .panel { display: none; }
+ .panel.on { display: flex; flex-direction: column; gap: 14px; animation: up 0.25s ease; }
+ @keyframes up { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+
+ /* ── Cards ── */
+ .card {
+ background: var(--card);
+ border-radius: 18px;
+ padding: 18px;
+ border: 1px solid var(--border);
+ position: relative;
+ overflow: hidden;
+ }
+ .card::after {
+ content: '';
+ position: absolute;
+ top: 0; left: 0; right: 0;
+ height: 2px;
+ background: linear-gradient(90deg, var(--a), var(--c), var(--d));
+ opacity: 0.6;
+ }
+
+ .label {
+ font-size: 0.68rem;
+ text-transform: uppercase;
+ letter-spacing: 2px;
+ color: var(--sub);
+ font-weight: 800;
+ margin-bottom: 12px;
+ }
+
+ /* ── Inputs ── */
+ input[type=text], input[type=number], select, textarea {
+ background: rgba(255,255,255,0.06);
+ border: 1.5px solid rgba(255,255,255,0.09);
+ border-radius: 11px;
+ color: var(--text);
+ padding: 9px 13px;
+ font-family: 'Nunito', sans-serif;
+ font-size: 0.88rem;
+ font-weight: 600;
+ outline: none;
+ transition: border-color 0.2s, background 0.2s;
+ width: 100%;
+ }
+ input:focus, select:focus, textarea:focus {
+ border-color: var(--b);
+ background: rgba(192,57,43,0.1);
+ }
+ select option { background: var(--card2); }
+
+ .row { display: flex; gap: 8px; flex-wrap: wrap; }
+ .row input { flex: 1; min-width: 140px; }
+ .row select { width: auto; min-width: 110px; flex-shrink: 0; }
+
+ /* ── Buttons ── */
+ .btn {
+ border: none;
+ border-radius: 11px;
+ padding: 9px 18px;
+ font-family: 'Nunito', sans-serif;
+ font-weight: 800;
+ cursor: pointer;
+ transition: all 0.18s;
+ font-size: 0.85rem;
+ white-space: nowrap;
+ }
+ .btn-p { background: linear-gradient(135deg, var(--a), var(--c)); color: white; box-shadow: 0 3px 12px rgba(192,57,43,0.3); }
+ .btn-p:hover { transform: translateY(-2px); box-shadow: 0 5px 18px rgba(192,57,43,0.5); }
+ .btn-t { background: rgba(255,255,255,0.1); color: var(--text); border: 1px solid rgba(255,255,255,0.15); }
+ .btn-t:hover { transform: translateY(-2px); background: rgba(255,255,255,0.15); }
+ .btn-g { background: rgba(255,255,255,0.07); color: var(--sub); }
+ .btn-g:hover { background: rgba(255,255,255,0.12); color: var(--text); }
+ .btn-sm { padding: 5px 11px; font-size: 0.72rem; border-radius: 8px; }
+
+ /* ── Tasks ── */
+ .task-list { display: flex; flex-direction: column; gap: 8px; }
+
+ .task {
+ background: rgba(255,255,255,0.04);
+ border-radius: 12px;
+ padding: 12px 14px;
+ display: flex;
+ align-items: center;
+ gap: 10px;
+ border: 1.5px solid rgba(255,255,255,0.05);
+ transition: all 0.2s;
+ cursor: pointer;
+ }
+ .task:hover { border-color: rgba(231,76,60,0.35); background: rgba(192,57,43,0.06); transform: translateX(3px); }
+ .task.done { opacity: 0.45; background: rgba(231,76,60,0.04); border-color: rgba(231,76,60,0.15); }
+ .task.done .task-txt { text-decoration: line-through; color: var(--sub); }
+
+ .check {
+ width: 22px; height: 22px;
+ border-radius: 50%;
+ border: 2px solid rgba(255,255,255,0.18);
+ flex-shrink: 0;
+ display: flex;
+ align-items: center;
+ justify-content: center;
+ font-size: 0.7rem;
+ transition: all 0.2s;
+ }
+ .task.done .check { background: var(--b); border-color: var(--b); color: white; font-weight: 900; }
+
+ .task-body { flex: 1; min-width: 0; }
+ .task-txt { font-weight: 700; font-size: 0.88rem; }
+ .task-tags { display: flex; gap: 5px; margin-top: 4px; flex-wrap: wrap; }
+
+ .tag {
+ font-size: 0.62rem;
+ font-weight: 800;
+ padding: 2px 7px;
+ border-radius: 50px;
+ text-transform: uppercase;
+ letter-spacing: 0.4px;
+ }
+ .tag-personal { background: rgba(231,76,60,0.15); color: #ff8a80; }
+ .tag-work { background: rgba(192,57,43,0.18); color: #ff6b6b; }
+ .tag-health { background: rgba(255,255,255,0.08); color: #ccc; }
+ .tag-social { background: rgba(255,255,255,0.08); color: #ccc; }
+ .tag-urgent { background: rgba(231,76,60,0.25); color: #ff8a80; border: 1px solid rgba(231,76,60,0.4); }
+ .tag-normal { background: rgba(255,255,255,0.07); color: var(--sub); }
+ .tag-low { background: rgba(255,140,0,0.15); color: var(--yellow); }
+
+ .del-btn { background: none; border: none; color: rgba(255,255,255,0.18); cursor: pointer; font-size: 0.95rem; padding: 3px; border-radius: 6px; flex-shrink: 0; transition: all 0.18s; }
+ .del-btn:hover { color: var(--red); background: rgba(244,63,94,0.1); }
+
+ /* Filter chips */
+ .filters { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 12px; }
+ .fc {
+ background: rgba(255,255,255,0.06);
+ border: 1.5px solid rgba(255,255,255,0.08);
+ border-radius: 50px;
+ padding: 4px 12px;
+ font-size: 0.72rem;
+ font-weight: 800;
+ cursor: pointer;
+ color: var(--sub);
+ transition: all 0.18s;
+ font-family: 'Nunito', sans-serif;
+ }
+ .fc.on { background: linear-gradient(135deg, var(--a), var(--c)); color: white; border-color: transparent; }
+ .fc:hover:not(.on) { border-color: var(--b); color: var(--text); }
+
+ /* Progress */
+ .prog-wrap { background: rgba(255,255,255,0.07); border-radius: 50px; height: 6px; overflow: hidden; margin: 6px 0 4px; }
+ .prog-fill { height: 100%; background: linear-gradient(90deg, var(--a), var(--c), var(--d)); border-radius: 50px; transition: width 0.5s cubic-bezier(0.34,1.56,0.64,1); }
+ .prog-lbl { font-size: 0.7rem; color: var(--sub); font-weight: 700; }
+
+ /* ── Timer ── */
+ .timer-modes { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 20px; }
+ .tm {
+ background: rgba(255,255,255,0.06);
+ border: 1.5px solid rgba(255,255,255,0.08);
+ border-radius: 10px;
+ color: var(--sub);
+ padding: 7px 13px;
+ font-family: 'Nunito', sans-serif;
+ font-weight: 800;
+ font-size: 0.78rem;
+ cursor: pointer;
+ transition: all 0.18s;
+ }
+ .tm.on { background: linear-gradient(135deg, var(--a), var(--b)); color: white; border-color: transparent; }
+
+ .timer-wrap { text-align: center; padding: 10px 0 20px; }
+
+ .ring {
+ width: 180px; height: 180px;
+ border-radius: 50%;
+ margin: 0 auto 18px;
+ background: conic-gradient(var(--b) 0deg, rgba(255,255,255,0.07) 0deg);
+ display: flex;
+ align-items: center;
+ justify-content: center;
+ box-shadow: 0 0 40px rgba(192,57,43,0.2);
+ transition: background 0.2s;
+ }
+ .ring-inner {
+ width: 152px; height: 152px;
+ background: var(--card);
+ border-radius: 50%;
+ display: flex;
+ flex-direction: column;
+ align-items: center;
+ justify-content: center;
+ gap: 2px;
+ }
+ .timer-val {
+ font-size: 2.6rem;
+ font-weight: 900;
+ background: linear-gradient(135deg, var(--b), var(--c));
+ -webkit-background-clip: text;
+ -webkit-text-fill-color: transparent;
+ background-clip: text;
+ line-height: 1;
+ }
+ .timer-mode-lbl { font-size: 0.65rem; color: var(--sub); text-transform: uppercase; letter-spacing: 2px; font-weight: 700; }
+
+ .timer-btns { display: flex; gap: 8px; justify-content: center; }
+
+ /* Two-col grid */
+ .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+ @media (max-width: 600px) { .grid2 { grid-template-columns: 1fr; } }
+
+ /* Big stat */
+ .big-stat { text-align: center; padding: 8px 0; }
+ .big-stat .n { font-size: 2.4rem; font-weight: 900; color: var(--b); line-height: 1; }
+ .big-stat .u { font-size: 0.68rem; color: var(--sub); text-transform: uppercase; letter-spacing: 1.5px; font-weight: 700; margin-top: 4px; }
+ .big-stat .n2 { font-size: 1.6rem; font-weight: 900; color: var(--c); margin-top: 12px; }
+
+ /* Tip card */
+ .tip-text { font-size: 0.85rem; color: #ffaaaa; font-weight: 600; line-height: 1.6; }
+
+ /* Brain dump */
+ textarea.dump {
+ min-height: 110px;
+ resize: vertical;
+ line-height: 1.6;
+ margin-bottom: 10px;
+ }
+
+ /* Mood */
+ .moods { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; margin: 6px 0 4px; }
+ .mood {
+ background: rgba(255,255,255,0.06);
+ border: 2px solid transparent;
+ border-radius: 14px;
+ padding: 10px 12px;
+ cursor: pointer;
+ font-size: 1.5rem;
+ text-align: center;
+ min-width: 64px;
+ transition: all 0.18s;
+ }
+ .mood:hover { transform: scale(1.08); }
+ .mood.on { border-color: var(--b); background: rgba(192,57,43,0.15); transform: scale(1.08); }
+ .mood .ml { font-size: 0.6rem; font-weight: 800; color: var(--sub); text-transform: uppercase; margin-top: 3px; font-family: 'Nunito', sans-serif; }
+
+ .mood-log-item {
+ display: flex;
+ align-items: center;
+ justify-content: space-between;
+ background: rgba(255,255,255,0.04);
+ border-radius: 10px;
+ padding: 9px 13px;
+ font-size: 0.82rem;
+ font-weight: 700;
+ }
+ .mood-log-item .time { color: var(--sub); font-size: 0.72rem; }
+ .mood-log-item .energy { color: var(--c); font-size: 0.75rem; font-weight: 800; }
+
+ /* Reset guide */
+ .reset-guide { font-size: 0.86rem; color: #ffaaaa; font-weight: 600; line-height: 1.8; }
+
+ /* Goals */
+ .goal-item {
+ background: rgba(255,255,255,0.04);
+ border-radius: 12px;
+ padding: 12px 14px;
+ display: flex;
+ align-items: center;
+ gap: 10px;
+ border: 1.5px solid rgba(255,255,255,0.05);
+ transition: all 0.2s;
+ }
+ .goal-item:hover { border-color: rgba(231,76,60,0.3); }
+ .goal-check { width: 22px; height: 22px; border-radius: 50%; border: 2px solid rgba(255,255,255,0.18); flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 0.7rem; cursor: pointer; transition: all 0.2s; }
+ .goal-item.done .goal-check { background: var(--b); border-color: var(--b); color: white; }
+ .goal-item.done .goal-txt { text-decoration: line-through; color: var(--sub); }
+ .goal-txt { flex: 1; font-size: 0.88rem; font-weight: 700; }
+ .goal-area { font-size: 0.65rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; padding: 2px 8px; border-radius: 50px; background: rgba(192,57,43,0.2); color: #ff8a80; }
+
+ /* Wins */
+ .win-item {
+ background: rgba(192,57,43,0.07);
+ border: 1px solid rgba(231,76,60,0.2);
+ border-radius: 11px;
+ padding: 10px 14px;
+ font-size: 0.86rem;
+ font-weight: 700;
+ display: flex;
+ align-items: center;
+ justify-content: space-between;
+ gap: 8px;
+ }
+
+ /* Quote */
+ .quote {
+ background: rgba(192,57,43,0.07);
+ border: 1px solid rgba(231,76,60,0.2);
+ border-radius: 14px;
+ padding: 14px 18px;
+ font-style: italic;
+ font-weight: 600;
+ color: #ffaaaa;
+ font-size: 0.88rem;
+ line-height: 1.5;
+ text-align: center;
+ }
+ .quote .qa { color: var(--sub); font-size: 0.72rem; font-style: normal; margin-top: 6px; }
+
+ /* Reward */
+ .overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.55); z-index: 99; display: none; }
+ .overlay.on { display: block; }
+
+ .reward {
+ position: fixed;
+ top: 50%; left: 50%;
+ transform: translate(-50%,-50%) scale(0);
+ background: var(--card2);
+ border: 2px solid var(--b);
+ border-radius: 22px;
+ padding: 28px 36px;
+ text-align: center;
+ z-index: 100;
+ transition: transform 0.3s cubic-bezier(0.34,1.56,0.64,1);
+ box-shadow: 0 20px 60px rgba(192,57,43,0.4);
+ min-width: 260px;
+ }
+ .reward.on { transform: translate(-50%,-50%) scale(1); }
+ .reward .re { font-size: 3.5rem; display: block; margin-bottom: 10px; }
+ .reward .rt { font-size: 1.3rem; font-weight: 900; color: var(--yellow); }
+ .reward .rs { color: var(--sub); font-size: 0.82rem; margin-top: 5px; }
+
+ /* Toast */
+ .toast {
+ position: fixed;
+ bottom: 20px;
+ left: 50%;
+ transform: translateX(-50%) translateY(80px);
+ background: var(--card2);
+ border: 1px solid var(--b);
+ border-radius: 50px;
+ padding: 10px 22px;
+ font-weight: 800;
+ font-size: 0.82rem;
+ z-index: 50;
+ transition: transform 0.35s cubic-bezier(0.34,1.56,0.64,1);
+ color: var(--c);
+ white-space: nowrap;
+ box-shadow: 0 6px 24px rgba(192,57,43,0.25);
+ }
+ .toast.on { transform: translateX(-50%) translateY(0); }
+
+ #confetti { position: fixed; inset: 0; pointer-events: none; z-index: 98; }
+
+ .empty { text-align: center; padding: 24px; color: var(--sub); font-size: 0.82rem; font-weight: 600; }
+ .empty span { display: block; font-size: 2rem; opacity: 0.3; margin-bottom: 8px; }
+
+ ::-webkit-scrollbar { width: 5px; }
+ ::-webkit-scrollbar-thumb { background: rgba(192,57,43,0.4); border-radius: 3px; }
+
+ .between { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+ .between .label { margin-bottom: 0; }
+
+ input[type=range] { accent-color: var(--b); cursor: pointer; }
+ .energy-row { display: flex; justify-content: space-between; font-size: 0.72rem; color: var(--sub); font-weight: 700; margin-top: 6px; }
+
+ /* ── Mobile ── */
+ @media (max-width: 600px) {
+   .wrap { padding: 0 12px 80px; }
+   header { padding: 16px 0 6px; flex-direction: column; align-items: flex-start; gap: 8px; }
+   .stats-row { width: 100%; overflow-x: auto; flex-wrap: nowrap; padding-bottom: 4px; }
+   .chip { flex-shrink: 0; font-size: 0.7rem; padding: 5px 10px; }
+   .tabs { gap: 3px; padding: 4px; }
+   .tab { padding: 8px 6px; font-size: 0.72rem; min-width: 60px; }
+   .card { padding: 14px; border-radius: 14px; }
+   .row { gap: 6px; }
+   .row input { min-width: 0; }
+   .btn { padding: 10px 14px; font-size: 0.82rem; }
+   .grid2 { grid-template-columns: 1fr; }
+   .kanban { grid-template-columns: 1fr; }
+   .kanban-task { padding: 12px; }
+   .kt-check { width: 22px; height: 22px; }
+   .kt-del { font-size: 1rem; padding: 4px 6px; }
+   textarea.dump { min-height: 140px; }
+   .goal-item { flex-wrap: wrap; }
+   .mood { min-width: 56px; padding: 8px; font-size: 1.3rem; }
+   .timer-val { font-size: 2.2rem; }
+   .ring { width: 160px; height: 160px; }
+   .ring-inner { width: 134px; height: 134px; }
+ }
+
+ /* Safe area for iPhone notch */
+ @supports (padding: max(0px)) {
+   .wrap { padding-bottom: max(40px, env(safe-area-inset-bottom)); }
+   .toast { bottom: max(20px, env(safe-area-inset-bottom)); }
+ }
+
+ /* ── Kanban ── */
+ .kanban { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+ .kanban-col { display: flex; flex-direction: column; gap: 8px; }
+ .kanban-col-header { font-size: 0.68rem; font-weight: 800; text-transform: uppercase; letter-spacing: 2px; padding: 8px 12px; border-radius: 10px; text-align: center; }
+ .urgent-header { background: rgba(231,76,60,0.2); color: #ff8a80; border: 1px solid rgba(231,76,60,0.3); }
+ .normal-header { background: rgba(255,255,255,0.07); color: var(--sub); border: 1px solid rgba(255,255,255,0.1); }
+ .low-header { background: rgba(255,140,0,0.15); color: var(--yellow); border: 1px solid rgba(255,140,0,0.25); }
+ .kanban-drop { flex: 1; min-height: 80px; border-radius: 12px; border: 1.5px dashed rgba(255,255,255,0.08); padding: 8px; display: flex; flex-direction: column; gap: 8px; transition: border-color 0.18s, background 0.18s; }
+ .kanban-drop.drag-over { border-color: var(--b); background: rgba(192,57,43,0.07); }
+ .kanban-task { background: rgba(255,255,255,0.05); border-radius: 10px; padding: 10px 12px; border: 1.5px solid rgba(255,255,255,0.06); cursor: grab; transition: all 0.18s; display: flex; align-items: flex-start; gap: 8px; }
+ .kanban-task:hover { border-color: rgba(231,76,60,0.3); background: rgba(192,57,43,0.07); }
+ .kanban-task.dragging { opacity: 0.35; cursor: grabbing; }
+ .kanban-task.done { opacity: 0.4; }
+ .kanban-task.done .kt-txt { text-decoration: line-through; color: var(--sub); }
+ .kt-check { width: 18px; height: 18px; border-radius: 50%; border: 2px solid rgba(255,255,255,0.2); flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 0.6rem; cursor: pointer; margin-top: 1px; transition: all 0.18s; }
+ .kanban-task.done .kt-check { background: var(--b); border-color: var(--b); color: white; }
+ .kt-body { flex: 1; min-width: 0; }
+ .kt-txt { font-size: 0.82rem; font-weight: 700; line-height: 1.4; word-break: break-word; }
+ .kt-cat { font-size: 0.62rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.4px; color: var(--sub); margin-top: 3px; }
+ .kt-del { background: none; border: none; color: rgba(255,255,255,0.15); cursor: pointer; font-size: 0.8rem; padding: 1px 3px; border-radius: 4px; flex-shrink: 0; transition: all 0.18s; line-height: 1; }
+ .kt-del:hover { color: var(--red); }
+</style>
+</head>
+<body>
+
+<!-- ── Auth screen ── -->
+<div id="authScreen" style="
+  position:fixed;inset:0;background:var(--bg);z-index:9999;
+  display:flex;align-items:center;justify-content:center;padding:24px;
+">
+  <div style="width:100%;max-width:360px;text-align:center">
+    <div style="font-size:2rem;font-weight:900;background:linear-gradient(135deg,#e74c3c,#c0392b);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:6px">Mr. Sherlock</div>
+    <div style="font-size:0.78rem;color:var(--sub);font-weight:700;letter-spacing:2px;text-transform:uppercase;margin-bottom:32px">Sign in to sync across devices</div>
+    <div id="authForm">
+      <input type="email" id="authEmail" placeholder="your@email.com" style="margin-bottom:10px;text-align:center">
+      <button class="btn btn-p" style="width:100%;padding:12px" onclick="signIn()">Send magic link</button>
+      <div id="authMsg" style="margin-top:14px;font-size:0.82rem;color:var(--sub);font-weight:600;line-height:1.5"></div>
+    </div>
+  </div>
+</div>
+
+<canvas id="confetti"></canvas>
+<div class="overlay" id="overlay" onclick="closeReward()"></div>
+<div class="reward" id="reward">
+ <span class="re" id="re"></span>
+ <div class="rt" id="rt">Done!</div>
+ <div class="rs" id="rs">Keep going!</div>
+ <button class="btn btn-p" style="margin-top:14px" onclick="closeReward()">Keep going →</button>
+</div>
+<div class="toast" id="toast"></div>
+
+<div class="wrap">
+
+ <header>
+ <div class="header-left">
+ <h1>Mr. Sherlock</h1>
+ </div>
+ <div class="stats-row">
+ <div class="chip"> <b id="sStreak">0</b> day streak</div>
+ <div class="chip">⭐ <b id="sPoints">0</b> pts</div>
+ <div class="chip"> <b id="sDone">0</b> today</div>
+ <div class="chip" id="sLevel">Level 1</div>
+ <button class="btn btn-g btn-sm" onclick="signOut()" style="font-size:0.7rem;padding:5px 10px">Sign out</button>
+ </div>
+ </header>
+
+ <nav class="tabs">
+ <button class="tab on" onclick="go('tasks', this)">PLAN A</button>
+ <button class="tab" onclick="go('focus', this)"> Focus</button>
+ <button class="tab" onclick="go('goals', this)"> Goals</button>
+ <button class="tab" onclick="go('brain', this)">PLAN B</button>
+ <button class="tab" onclick="go('mood', this)"> Mood</button>
+ </nav>
+
+ <!-- ══ TASKS ══ -->
+ <div class="panel on" id="panel-tasks">
+
+ <div class="card">
+ <div class="label"> New task</div>
+ <div class="row" style="margin-bottom:8px">
+ <input type="text" id="tIn" placeholder="What needs doing?" onkeydown="if(event.key==='Enter')addTask()">
+ </div>
+ <div class="row">
+ <select id="tCat">
+ <option value="personal"> Personal</option>
+ <option value="work"> Work / Biz</option>
+ <option value="health"> Health</option>
+ <option value="social"> Social</option>
+ </select>
+ <button class="btn btn-p" onclick="addTask()">Add </button>
+ </div>
+ </div>
+
+ <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+  <div class="prog-lbl" id="progLbl">0 / 0 done</div>
+  <button class="btn btn-g btn-sm" onclick="clearDone()">Clear done</button>
+ </div>
+ <div class="prog-wrap" style="margin-bottom:16px"><div class="prog-fill" id="progFill" style="width:0%"></div></div>
+
+ <div class="kanban">
+  <div class="kanban-col">
+   <div class="kanban-col-header urgent-header">Urgent</div>
+   <div class="kanban-drop" id="col-urgent" ondragover="onDragOver(event)" ondragleave="onDragLeave(event)" ondrop="onDrop(event,'urgent')"></div>
+  </div>
+  <div class="kanban-col">
+   <div class="kanban-col-header normal-header">Normal</div>
+   <div class="kanban-drop" id="col-normal" ondragover="onDragOver(event)" ondragleave="onDragLeave(event)" ondrop="onDrop(event,'normal')"></div>
+  </div>
+  <div class="kanban-col">
+   <div class="kanban-col-header low-header">Low</div>
+   <div class="kanban-drop" id="col-low" ondragover="onDragOver(event)" ondragleave="onDragLeave(event)" ondrop="onDrop(event,'low')"></div>
+  </div>
+ </div>
+
+ </div>
+
+ <!-- ══ FOCUS ══ -->
+ <div class="panel" id="panel-focus">
+
+ <div class="card">
+ <div class="label">⏱ Focus timer</div>
+ <div class="timer-modes">
+ <button class="tm on" onclick="setMode(25,'Focus',this)"> 25 min</button>
+ <button class="tm" onclick="setMode(10,'Quick blast',this)"> 10 min</button>
+ <button class="tm" onclick="setMode(5,'Short break',this)"> 5 min</button>
+ <button class="tm" onclick="setMode(15,'Long break',this)"> 15 min</button>
+ </div>
+ <div class="timer-wrap">
+ <div class="ring" id="ring">
+ <div class="ring-inner">
+ <div class="timer-val" id="tDisplay">25:00</div>
+ <div class="timer-mode-lbl" id="tLabel">Focus</div>
+ </div>
+ </div>
+ <div class="timer-btns">
+ <button class="btn btn-p" id="tBtn" onclick="toggleTimer()">▶ Start</button>
+ <button class="btn btn-g" onclick="resetTimer()">↺ Reset</button>
+ </div>
+ </div>
+ </div>
+
+ <div class="grid2">
+ <div class="card">
+ <div class="label"> Today</div>
+ <div class="big-stat">
+ <div class="n" id="fMins">0</div>
+ <div class="u">minutes focused</div>
+ <div class="n2" id="fSess">0</div>
+ <div class="u">sessions done</div>
+ </div>
+ </div>
+ <div class="card">
+ <div class="label"> ADHD tip</div>
+ <div class="tip-text" id="tipTxt"></div>
+ <button class="btn btn-g btn-sm" style="margin-top:10px" onclick="nextTip()">Next ↻</button>
+ </div>
+ </div>
+
+ </div>
+
+ <!-- ══ GOALS ══ -->
+ <div class="panel" id="panel-goals">
+
+ <div class="card">
+ <div class="label"> Add a goal or project task</div>
+ <div class="row" style="margin-bottom:8px">
+ <input type="text" id="gIn" placeholder="e.g. Research suppliers, post on Insta…" onkeydown="if(event.key==='Enter')addGoal()">
+ </div>
+ <div class="row">
+ <select id="gArea">
+ <option value="business"> Business</option>
+ <option value="learning"> Learning</option>
+ <option value="fitness"> Fitness</option>
+ <option value="creative"> Creative</option>
+ <option value="life"> Life admin</option>
+ </select>
+ <button class="btn btn-p" onclick="addGoal()">Add</button>
+ </div>
+ </div>
+
+ <div class="card">
+ <div class="label"> Active goals</div>
+ <div class="task-list" id="goalList"></div>
+ </div>
+
+ <div class="card">
+ <div class="label"> Ideas to capture</div>
+ <div class="row" style="margin-bottom:10px">
+ <input type="text" id="ideaIn" placeholder="Brain spark — catch it now!" onkeydown="if(event.key==='Enter')addIdea()">
+ <button class="btn btn-t" onclick="addIdea()">Save</button>
+ </div>
+ <div class="task-list" id="ideaList"></div>
+ </div>
+
+ </div>
+
+ <!-- ══ BRAIN DUMP ══ -->
+ <div class="panel" id="panel-brain">
+
+ <div class="card">
+  <div class="label">DONT STRESS! Put all thoughts here, let me organise this for you ;)</div>
+  <textarea class="dump" id="dumpTxt" placeholder="e.g. need to call mum back, design the logo, my back hurts, post something on instagram, pick up food, that melody idea from this morning, reply to sarah…"></textarea>
+  <div class="row" style="margin-top:10px">
+   <button class="btn btn-p" onclick="organiseThoughts()">Organise into tasks</button>
+   <button class="btn btn-g" onclick="clearRant()">Clear</button>
+  </div>
+ </div>
+
+ <div class="card" id="thoughtPreviewCard" style="display:none">
+  <div class="label" id="thoughtPreviewLabel">Ready to add</div>
+  <div class="task-list" id="thoughtPreviewList" style="margin-bottom:12px"></div>
+  <div class="row">
+   <button class="btn btn-p" onclick="confirmThoughts()">Add all to tasks</button>
+   <button class="btn btn-g" onclick="cancelThoughts()">Cancel</button>
+  </div>
+ </div>
+
+ <div class="card">
+ <div class="label">Daily wins</div>
+ <div class="row" style="margin-bottom:12px">
+ <input type="text" id="winIn" placeholder="What went well today? Big or tiny!" onkeydown="if(event.key==='Enter')addWin()">
+ <button class="btn btn-t" onclick="addWin()">Log it</button>
+ </div>
+ <div class="task-list" id="winList"></div>
+ </div>
+
+ </div>
+
+ <!-- ══ MOOD ══ -->
+ <div class="panel" id="panel-mood">
+
+ <div class="card">
+ <div class="label">Energy level</div>
+ <input type="range" id="energyR" min="1" max="10" value="5" style="width:100%;margin-top:4px" oninput="updateE(this.value)">
+ <div class="energy-row">
+ <span>Completely out of it</span>
+ <span id="eVal" style="color:var(--b);font-weight:900">5 / 10</span>
+ <span>On itttt</span>
+ </div>
+ </div>
+
+ <div class="card" id="energyAdviceCard">
+  <div class="label" id="energyAdviceTitle">How to work with your energy right now</div>
+  <div id="energyAdviceBody" style="display:flex;flex-direction:column;gap:14px"></div>
+ </div>
+
+ </div>
+
+</div><!-- /wrap -->
+
+<script>
+// ── Supabase config — fill these in after creating your project ──
+const SUPABASE_URL  = 'YOUR_SUPABASE_URL';
+const SUPABASE_KEY  = 'YOUR_SUPABASE_ANON_KEY';
+const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+let currentUser = null;
+
+// ── State ──────────────────────────────────────────────
+let S = {
+ tasks:[], goals:[], ideas:[], wins:[], moods:[],
+ dump:'', ints:['','',''],
+ pts:0, streak:0, doneToday:0,
+ focusMins:0, focusSess:0,
+ lastDate:''
+};
+
+// Save to localStorage immediately, then push to Supabase in background
+function save(){
+  localStorage.setItem('fhq', JSON.stringify(S));
+  if(currentUser) pushToCloud();
+}
+
+async function pushToCloud(){
+  await sb.from('user_data').upsert({
+    user_id: currentUser.id,
+    data: S,
+    updated_at: new Date().toISOString()
+  }, { onConflict: 'user_id' });
+}
+
+async function pullFromCloud(){
+  const { data } = await sb.from('user_data')
+    .select('data')
+    .eq('user_id', currentUser.id)
+    .single();
+  if(data?.data) S = { ...S, ...data.data };
+}
+
+function checkNewDay(){
+  const today = new Date().toDateString();
+  if(S.lastDate !== today){
+    if(S.lastDate) S.streak++;
+    S.doneToday = 0; S.focusMins = 0; S.focusSess = 0; S.moods = [];
+    S.lastDate = today;
+    save();
+  }
+}
+
+async function load(){
+  // Load localStorage immediately so UI is instant
+  const d = localStorage.getItem('fhq');
+  if(d) S = { ...S, ...JSON.parse(d) };
+  // Then pull fresher cloud data if signed in
+  if(currentUser) await pullFromCloud();
+  checkNewDay();
+}
+
+// ── Auth ───────────────────────────────────────────────
+async function signIn(){
+  const email = document.getElementById('authEmail').value.trim();
+  if(!email){ document.getElementById('authMsg').textContent = 'Enter your email first.'; return; }
+  document.getElementById('authMsg').textContent = 'Sending link...';
+  const { error } = await sb.auth.signInWithOtp({
+    email,
+    options: { emailRedirectTo: window.location.href }
+  });
+  if(error){
+    document.getElementById('authMsg').textContent = 'Error: ' + error.message;
+  } else {
+    document.getElementById('authForm').innerHTML = `
+      <div style="font-size:1.8rem;margin-bottom:12px">&#9993;</div>
+      <div style="font-weight:800;color:#f5f5f5;font-size:1rem;margin-bottom:8px">Check your email</div>
+      <div style="color:var(--sub);font-size:0.85rem;line-height:1.6">We sent a magic link to <b style="color:#ff8a80">${email}</b>.<br>Tap it on any device to sign in.</div>`;
+  }
+}
+
+async function signOut(){
+  await sb.auth.signOut();
+  currentUser = null;
+  localStorage.removeItem('fhq');
+  document.getElementById('authScreen').style.display = 'flex';
+  document.getElementById('authForm').innerHTML = `
+    <input type="email" id="authEmail" placeholder="your@email.com" style="margin-bottom:10px;text-align:center">
+    <button class="btn btn-p" style="width:100%;padding:12px" onclick="signIn()">Send magic link</button>
+    <div id="authMsg" style="margin-top:14px;font-size:0.82rem;color:var(--sub);font-weight:600;line-height:1.5"></div>`;
+}
+
+// ── Boot ───────────────────────────────────────────────
+sb.auth.onAuthStateChange(async (event, session) => {
+  if(session?.user){
+    currentUser = session.user;
+    document.getElementById('authScreen').style.display = 'none';
+    await load();
+    startApp();
+  }
+});
+
+(async () => {
+  const { data: { session } } = await sb.auth.getSession();
+  if(session?.user){
+    currentUser = session.user;
+    document.getElementById('authScreen').style.display = 'none';
+    await load();
+    startApp();
+  }
+})();
+
+// ── Quotes ────────────────────────────────────────────
+const qs = [
+ ["ADHD is not a deficit of attention — it's a difference in attention.",""],
+ ["Progress over perfection. Every single time.",""],
+ ["One task at a time. That's literally all.",""],
+ ["Rest is not laziness. Your brain needs it to perform.",""],
+ ["The hardest part is starting. Start anyway.",""],
+ ["You're not lazy. You're running a different OS.",""],
+ ["Small wins compound. Log every single one.","⭐"],
+ ["It's okay if it took you three attempts. You still did it.",""],
+];
+function loadQuote(){
+ const q = qs[Math.floor(Math.random()*qs.length)];
+ document.getElementById('qText').textContent = '"'+q[0]+'"';
+ document.getElementById('qBy').textContent = q[1];
+}
+
+// ── Tips ──────────────────────────────────────────────
+const tips = [
+ " Body doubling helps — put on a study livestream or work in a café.",
+ "⏰ 2-minute rule: if it takes under 2 minutes, do it right now.",
+ " Brown noise or lo-fi can lock in focus for ADHD brains.",
+ " Phone in another room. Even face-down still pulls attention.",
+ " Write it down the second it pops up. Don't trust future-you.",
+ " Reward yourself right after finishing something — not later.",
+ " Tackle the hardest task first while your energy is high.",
+ " Dehydration hits ADHD brains harder. Drink water now.",
+ " One tab. One task. Close everything else.",
+ " Break big tasks into tiny steps. 'Write report' → 'Open document'.",
+ " Consistent routine anchors your brain and reduces decision fatigue.",
+ " Basics first: shower, eat, move. Executive function depends on them.",
+];
+let tipI = 0;
+function nextTip(){ tipI = (tipI+1)%tips.length; document.getElementById('tipTxt').textContent = tips[tipI]; }
+
+// ── Tasks ─────────────────────────────────────────────
+function addTask(){
+  const v = document.getElementById('tIn').value.trim();
+  if(!v){ flash('tIn'); return; }
+  S.tasks.unshift({ id:Date.now(), text:v, cat:document.getElementById('tCat').value, pri:'normal', done:false });
+  document.getElementById('tIn').value = '';
+  save(); renderTasks(); toast('Task added');
+  document.getElementById('col-normal').scrollIntoView({behavior:'smooth', block:'nearest'});
+}
+
+function taskCard(t){
+  return `<div class="kanban-task ${t.done?'done':''}" id="kt${t.id}"
+    draggable="true"
+    ondragstart="onDragStart(event,${t.id})"
+    ondragend="onDragEnd(event)">
+    <div class="kt-check" onclick="toggleTask(${t.id})">${t.done?'&#10003;':''}</div>
+    <div class="kt-body" onclick="toggleTask(${t.id})">
+      <div class="kt-txt">${esc(t.text)}</div>
+      <div class="kt-cat">${catLbl(t.cat)}</div>
+    </div>
+    <button class="kt-del" onclick="delTask(${t.id})">&#x2715;</button>
+  </div>`;
+}
+
+function renderTasks(){
+  ['urgent','normal','low'].forEach(pri=>{
+    const col = document.getElementById('col-'+pri);
+    const tasks = S.tasks.filter(t=>t.pri===pri);
+    col.innerHTML = tasks.length
+      ? tasks.map(taskCard).join('')
+      : '<div class="empty" style="padding:16px 8px;font-size:0.75rem"><span style="font-size:1.2rem;opacity:0.25">&#9632;</span>Drop here</div>';
+  });
+  const total = S.tasks.length, done = S.tasks.filter(t=>t.done).length;
+  const pct = total ? Math.round(done/total*100) : 0;
+  document.getElementById('progFill').style.width = pct+'%';
+  document.getElementById('progLbl').textContent = `${done} / ${total} done`;
+}
+
+function toggleTask(id){
+  const t = S.tasks.find(t=>t.id===id); if(!t) return;
+  t.done = !t.done;
+  if(t.done){ S.pts += t.pri==='urgent'?30:t.pri==='low'?10:20; S.doneToday++; showReward(t.text); }
+  else { S.pts = Math.max(0,S.pts-10); S.doneToday = Math.max(0,S.doneToday-1); }
+  save(); renderTasks(); updateStats();
+}
+
+function delTask(id){ S.tasks=S.tasks.filter(t=>t.id!==id); save(); renderTasks(); }
+function clearDone(){ S.tasks=S.tasks.filter(t=>!t.done); save(); renderTasks(); toast('Cleared'); }
+
+// ── Drag and drop ──
+let dragId = null;
+
+function onDragStart(e, id){
+  dragId = id;
+  setTimeout(()=>{ const el=document.getElementById('kt'+id); if(el) el.classList.add('dragging'); }, 0);
+  e.dataTransfer.effectAllowed = 'move';
+}
+
+function onDragEnd(e){
+  if(dragId){ const el=document.getElementById('kt'+dragId); if(el) el.classList.remove('dragging'); }
+  document.querySelectorAll('.kanban-drop').forEach(c=>c.classList.remove('drag-over'));
+}
+
+function onDragOver(e){
+  e.preventDefault();
+  e.dataTransfer.dropEffect = 'move';
+  e.currentTarget.classList.add('drag-over');
+}
+
+function onDragLeave(e){
+  e.currentTarget.classList.remove('drag-over');
+}
+
+function onDrop(e, pri){
+  e.preventDefault();
+  e.currentTarget.classList.remove('drag-over');
+  if(dragId === null) return;
+  const t = S.tasks.find(t=>t.id===dragId);
+  if(t && t.pri !== pri){ t.pri = pri; save(); renderTasks(); toast('Moved to '+pri); }
+  dragId = null;
+}
+
+// ── Goals & Ideas ──────────────────────────────────────
+function addGoal(){
+ const v=document.getElementById('gIn').value.trim(); if(!v) return;
+ S.goals.unshift({id:Date.now(),text:v,area:document.getElementById('gArea').value,done:false});
+ document.getElementById('gIn').value='';
+ save(); renderGoals();
+}
+
+function renderGoals(){
+ const el=document.getElementById('goalList');
+ if(!S.goals.length){el.innerHTML='<div class="empty"><span></span>Add your first goal!</div>';return;}
+ const areaEmoji={business:'',learning:'',fitness:'',creative:'',life:''};
+ el.innerHTML=S.goals.map(g=>`
+ <div class="goal-item ${g.done?'done':''}">
+ <div class="goal-check" onclick="toggleGoal(${g.id})">${g.done?'':''}</div>
+ <div class="goal-txt" onclick="toggleGoal(${g.id})">${esc(g.text)}</div>
+ <span class="goal-area">${areaEmoji[g.area]||''} ${g.area}</span>
+ <button class="del-btn" onclick="delGoal(${g.id})"></button>
+ </div>`).join('');
+}
+
+function toggleGoal(id){
+ const g=S.goals.find(g=>g.id===id); if(!g) return;
+ g.done=!g.done; if(g.done){S.pts+=25;updateStats();}
+ save(); renderGoals();
+}
+function delGoal(id){S.goals=S.goals.filter(g=>g.id!==id);save();renderGoals();}
+
+function addIdea(){
+ const v=document.getElementById('ideaIn').value.trim(); if(!v) return;
+ S.ideas.unshift({id:Date.now(),text:v});
+ document.getElementById('ideaIn').value='';
+ save(); renderIdeas(); toast('Idea captured ');
+}
+
+function renderIdeas(){
+ const el=document.getElementById('ideaList');
+ if(!S.ideas.length){el.innerHTML='<div class="empty"><span></span>Capture ideas as they spark!</div>';return;}
+ el.innerHTML=S.ideas.map(i=>`
+ <div class="task">
+ <div style="font-size:1.1rem;flex-shrink:0"></div>
+ <div class="task-body"><div class="task-txt">${esc(i.text)}</div></div>
+ <button class="del-btn" onclick="delIdea(${i.id})"></button>
+ </div>`).join('');
+}
+function delIdea(id){S.ideas=S.ideas.filter(i=>i.id!==id);save();renderIdeas();}
+
+// ── Brain dump ─────────────────────────────────────────
+function clearRant(){if(confirm('Clear thoughts?')){S.dump='';document.getElementById('dumpTxt').value='';pendingThoughts=[];hidePreviews();save();}}
+
+const workKw=['email','instagram','insta','post','client','business','design','logo','supplier','order','price','sell','selling','website','booking','brand','invoice','market','social media','reel','story','shoot','photoshoot','admin','meeting','biz'];
+const healthKw=['gym','run','running','walk','eat','eating','food','sleep','doctor','dentist','medicine','tablet','drink water','water','exercise','back','headache','pain','tired','rest','stretch','period','appointment','health'];
+const socialKw=['call','text','ring','message','reply','sarah','mum','dad','friend','catch up','meet up','birthday','party','group chat'];
+
+function guessCat(text){
+  const t=text.toLowerCase();
+  if(workKw.some(k=>t.includes(k))) return 'work';
+  if(healthKw.some(k=>t.includes(k))) return 'health';
+  if(socialKw.some(k=>t.includes(k))) return 'social';
+  return 'personal';
+}
+
+function guessPri(text){
+  const t=text.toLowerCase();
+  if(/urgent|asap|today|right now|need to|must|important|deadline/.test(t)) return 'urgent';
+  if(/maybe|eventually|sometime|low|whenever/.test(t)) return 'low';
+  return 'normal';
+}
+
+let pendingThoughts=[];
+
+function organiseThoughts(){
+  const raw=document.getElementById('dumpTxt').value.trim();
+  if(!raw){toast('Nothing to organise yet');return;}
+  S.dump=raw; save();
+  const chunks=raw
+    .split(/\n|,(?![^\(]*\))/)
+    .map(s=>s.replace(/^[\s\-\*•]+|[\s\.]+$/g,'').trim())
+    .filter(s=>s.length>2);
+  if(!chunks.length){toast('Could not find any separate thoughts');return;}
+  pendingThoughts=chunks.map(text=>({
+    id:Date.now()+Math.random(),
+    text,
+    cat:guessCat(text),
+    pri:guessPri(text),
+    done:false
+  }));
+  renderPendingPreview();
+  const card=document.getElementById('thoughtPreviewCard');
+  card.style.display='block';
+  card.scrollIntoView({behavior:'smooth'});
+}
+
+function renderPendingPreview(){
+  const catLabel={personal:'Personal',work:'Work / Biz',health:'Health',social:'Social'};
+  const priLabel={urgent:'Urgent',normal:'Normal',low:'Low'};
+  document.getElementById('thoughtPreviewLabel').textContent=`${pendingThoughts.length} thought${pendingThoughts.length!==1?'s':''} ready to add`;
+  document.getElementById('thoughtPreviewList').innerHTML=pendingThoughts.map((t,i)=>`
+    <div class="task" style="flex-direction:column;align-items:flex-start;gap:6px">
+      <div style="font-weight:700;font-size:0.88rem">${esc(t.text)}</div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;width:100%">
+        <select onchange="pendingThoughts[${i}].cat=this.value" style="font-size:0.72rem;padding:3px 8px;border-radius:8px;min-width:unset;width:auto">
+          ${['personal','work','health','social'].map(c=>`<option value="${c}"${t.cat===c?' selected':''}>${catLabel[c]}</option>`).join('')}
+        </select>
+        <select onchange="pendingThoughts[${i}].pri=this.value" style="font-size:0.72rem;padding:3px 8px;border-radius:8px;min-width:unset;width:auto">
+          ${['urgent','normal','low'].map(p=>`<option value="${p}"${t.pri===p?' selected':''}>${priLabel[p]}</option>`).join('')}
+        </select>
+        <button class="btn btn-g btn-sm" onclick="removePending(${i})">Remove</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+function removePending(i){
+  pendingThoughts.splice(i,1);
+  if(!pendingThoughts.length){hidePreviews();return;}
+  renderPendingPreview();
+}
+
+function confirmThoughts(){
+  if(!pendingThoughts.length) return;
+  const count=pendingThoughts.length;
+  pendingThoughts.forEach(t=>S.tasks.unshift({...t,id:Date.now()+Math.random()}));
+  save(); renderTasks();
+  S.dump=''; document.getElementById('dumpTxt').value='';
+  pendingThoughts=[]; hidePreviews();
+  toast(count+' thoughts added to tasks');
+  goByName('tasks');
+}
+
+function cancelThoughts(){pendingThoughts=[];hidePreviews();}
+function hidePreviews(){document.getElementById('thoughtPreviewCard').style.display='none';}
+function saveInt(){}
+
+// ── Wins ───────────────────────────────────────────────
+function addWin(){
+ const v=document.getElementById('winIn').value.trim(); if(!v) return;
+ S.wins.unshift({id:Date.now(),text:v,date:new Date().toDateString()});
+ document.getElementById('winIn').value='';
+ save(); renderWins(); showRewardSimple('','WIN LOGGED!','Every win counts, queen.');
+}
+
+function renderWins(){
+ const today=new Date().toDateString();
+ const el=document.getElementById('winList');
+ const wins=S.wins.filter(w=>w.date===today);
+ if(!wins.length){el.innerHTML='<div class="empty"><span></span>Log your first win!</div>';return;}
+ el.innerHTML=wins.map(w=>`
+ <div class="win-item">
+ <span> ${esc(w.text)}</span>
+ <button class="del-btn" onclick="delWin(${w.id})"></button>
+ </div>`).join('');
+}
+function delWin(id){S.wins=S.wins.filter(w=>w.id!==id);save();renderWins();}
+
+// ── Mood ───────────────────────────────────────────────
+function logMood(btn,mood){
+ document.querySelectorAll('.mood').forEach(b=>b.classList.remove('on'));
+ btn.classList.add('on');
+ S.moods.push({mood,time:new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}),energy:document.getElementById('energyR').value});
+ save(); renderMoodLog(); toast('Mood logged '+mood);
+}
+
+function renderMoodLog(){
+ const el=document.getElementById('moodLog');
+ if(!S.moods.length){el.innerHTML='<div class="empty" style="padding:12px">No moods logged yet</div>';return;}
+ el.innerHTML=[...S.moods].reverse().map(m=>`
+ <div class="mood-log-item">
+ <span>${m.mood}</span>
+ <div style="display:flex;gap:10px;align-items:center">
+ <span class="energy">${m.energy}/10</span>
+ <span class="time">${m.time}</span>
+ </div>
+ </div>`).join('');
+}
+
+function updateE(v){
+  document.getElementById('eVal').textContent=v+' / 10';
+  renderEnergyAdvice(parseInt(v));
+}
+
+const energyAdvice = {
+  1: {
+    label: "Running on empty",
+    colour: "#ff4444",
+    intro: "Your tank is nearly empty — that's real, and it's okay. Your ADHD brain isn't broken right now, it's just depleted. The goal isn't to be productive. It's to gently come back online.",
+    sections: [
+      { heading: "Start with sound, not a task", body: "Pick up an instrument — even just play one chord, one melody, no pressure. Or put on a song that feels like a hug. Music bypasses the part of your brain that's fighting you right now and activates emotion and memory directly. You don't have to do anything with it. Just let it exist around you." },
+      { heading: "Make something tiny and visual", body: "Open a sketchbook or a notes app and draw one shape, one line, one colour swatch. No finished piece. No outcome. The act of making something with your hands — even scribbling — signals to your nervous system that you are still capable and present." },
+      { heading: "Body first, brain second", body: "Drink water, eat something warm, and if you can — lie down for 20 minutes with music or ambient sound. ADHD brains on low energy are running hot with no fuel. A physical reset is not laziness. It is literally the fastest way back to function." },
+      { heading: "The one tiny thing rule", body: "If you have to do something today, pick the absolute smallest version of it. Not 'do the task' — find the document. Not 'reply to messages' — open the app. Momentum starts with movement, not effort." },
+    ]
+  },
+  2: {
+    label: "Very low",
+    colour: "#ff4444",
+    intro: "You're running on fumes but you're still here — that counts. Your brain needs a bridge back to the world, not a kick up the backside.",
+    sections: [
+      { heading: "Use music as an anchor", body: "Put on an instrumental playlist — something with rhythm but no lyrics. Your brain latches onto pattern and beat. It's one of the most reliable ways to pull an ADHD mind back from the fog without requiring any willpower." },
+      { heading: "Doodle to reconnect", body: "Don't try to create. Just mark the page — shapes, patterns, abstract lines. Art at low energy isn't about output, it's about re-establishing the connection between your mind and your hands. That connection is your superpower and it works even when everything else doesn't." },
+      { heading: "Change your physical location", body: "Move to a different room, go outside for 5 minutes, sit by a window. ADHD brains respond strongly to environmental novelty. A new space can trigger enough of a dopamine shift to get you unstuck without requiring any actual effort." },
+      { heading: "Lower the bar dramatically", body: "Write down one thing — just one — that would make today feel like it wasn't a write-off. Make it achievable at this energy level. Completing even one small thing will build momentum." },
+    ]
+  },
+  3: {
+    label: "Low",
+    colour: "#ff6b35",
+    intro: "Low but not flat. There's something to work with here. The trick is not to fight your energy level — work alongside it.",
+    sections: [
+      { heading: "Pair a task with music", body: "Body doubling with music is one of the most effective ADHD tools. Put on a study playlist, lo-fi beats, or even a familiar album you know by heart. The audio fills the background noise your brain craves and frees up focus for the task in front of you." },
+      { heading: "Do a creative warmup", body: "Spend 10 minutes on something purely for yourself — sketch a design idea, play a riff, colour something in. Think of it like stretching before a run. Creative warmups activate the parts of your brain you actually use well, then you can redirect that energy into tasks." },
+      { heading: "Work in 10-minute bursts", body: "At low energy, 25-minute timers can feel impossible. Drop to 10 minutes on, 5 minutes off. Use the Focus tab. The shorter window makes starting feel less threatening, and you'll often find you carry on past the timer anyway." },
+      { heading: "Write it down, not in your head", body: "Your working memory is fragile at low energy. Everything swirling in your head is eating your limited battery. Do a quick brain rant — get it all out of your head and onto the page. You'll immediately feel lighter." },
+    ]
+  },
+  4: {
+    label: "Below average",
+    colour: "#ff6b35",
+    intro: "You have some capacity but it needs to be spent carefully. Prioritise, simplify, and protect your focus.",
+    sections: [
+      { heading: "Choose one creative anchor for the day", body: "Pick one artistic or musical thing to return to when you hit a wall — a song to play, a design to tinker with, a sketchbook page to add to. Having that anchor means when focus slips, you have a safe place to land and recharge before going again." },
+      { heading: "Eat the frog first", body: "The one task you've been avoiding is probably draining background energy just by existing on your to-do list. Do the smallest version of it first. Once it's off the mental stack, your available attention will actually increase." },
+      { heading: "Design your environment", body: "You're someone who responds to aesthetics — so use that. Tidy your immediate workspace, open a design reference or mood board, put on music that matches the energy you want to have. Your environment shapes your brain state more than most people's." },
+      { heading: "Limit decisions", body: "Decision fatigue hits ADHD brains hard at below-average energy. Reduce the number of choices you have to make today — same lunch, same outfit, same playlist. Save your limited executive function for the things that matter." },
+    ]
+  },
+  5: {
+    label: "Middle ground",
+    colour: "#ff8c00",
+    intro: "You're at baseline — not great, not bad. This is a workable state. The goal is to build momentum without burning out.",
+    sections: [
+      { heading: "Use music to set the pace", body: "At neutral energy, music is a mood dial. Want to focus hard? Put on something with a steady 120bpm beat. Want to ease in creatively? Try ambient or classical. You have enough awareness at this level to deliberately choose your audio environment and let it shape your output." },
+      { heading: "Start with something you enjoy", body: "Lead with a task that plays to your strengths — something visual, creative, or design-led. Your ADHD brain is much more cooperative when it starts on familiar, rewarding ground. Use that momentum to carry into less exciting tasks." },
+      { heading: "Break tasks into visual steps", body: "Write your task list as a visual flow — boxes, arrows, colour-coded if that helps. You think in pictures and systems. A visual map of what needs doing is far more readable to your brain than a plain list." },
+      { heading: "Take a proper break, not a scroll", body: "When you need a break, make it restorative — play an instrument for 5 minutes, step outside, sketch something. Social media at this energy level will drain you faster than the work did. Choose your recharge carefully." },
+    ]
+  },
+  6: {
+    label: "Decent",
+    colour: "#ffa500",
+    intro: "Good energy to work with. Your brain is engaged — now it's about direction, not effort.",
+    sections: [
+      { heading: "Tackle something creative and meaningful", body: "This is a good energy level for deeper creative work — designing something, working on a project that excites you, mapping out ideas visually. Your ADHD brain is at its best when it's doing something it genuinely finds interesting. Lean into that." },
+      { heading: "Time-block your day visually", body: "Draw or map out your day in time blocks — even rough ones. Visual scheduling works better than written lists for ADHD because it shows time as a concrete, spacial thing rather than an abstract concept. Colour-code blocks if that helps." },
+      { heading: "Use music to maintain flow", body: "At this energy level, music becomes a flow state tool. Find a playlist that matches your work pace and commit to it for a whole focus session. Familiar music works better than new music here — your brain knows what to expect and stops hunting for novelty." },
+      { heading: "Check your to-do list and do the next most important thing", body: "You have enough executive function right now to make a good decision about what to prioritise. Don't overthink it — pick the next most valuable task and start. Decision paralysis is an ADHD trap; trust your gut and move." },
+    ]
+  },
+  7: {
+    label: "Good",
+    colour: "#c0392b",
+    intro: "You're in a good place. Protect this state and use it well — don't scatter it on low-value tasks.",
+    sections: [
+      { heading: "Go deep on something that matters", body: "This is the energy level for real creative or strategic work. Work on something that requires sustained thought — a design project, a business idea, a piece of music, a plan. Your ADHD brain is capable of extraordinary depth when it's sufficiently charged and engaged." },
+      { heading: "Channel it creatively before anything else", body: "Even 20 minutes of free creative output at the start — sketching, playing, designing without constraint — can prime your brain for a highly productive session. Think of it as tuning the instrument before the performance." },
+      { heading: "Stack your tasks strategically", body: "Group similar tasks together. Creative tasks with creative tasks, admin with admin. Context-switching is expensive for ADHD brains. Staying in one mode means you spend less energy re-loading and more energy actually doing." },
+      { heading: "Watch out for hyperfocus traps", body: "At this energy, you might hyperfocus — which can be incredible or catastrophic depending on what you lock onto. Before you dive deep into anything, check: is this actually what needs doing? Set a timer so you surface and reality-check every hour." },
+    ]
+  },
+  8: {
+    label: "High energy",
+    colour: "#c0392b",
+    intro: "You're firing well. This is the state where great work gets done — use it intentionally.",
+    sections: [
+      { heading: "Do your most demanding creative work now", body: "High energy + artistic brain = the conditions for something genuinely good. If there's a design, a concept, a creative project you've been putting off — now is the time. Don't use this state on emails." },
+      { heading: "Record your ideas", body: "When your brain is running hot, ideas come fast. Keep your sketchbook, notes app, or voice memo ready. ADHD brains generate brilliantly at high energy but lose it just as fast. Capture everything — filter later." },
+      { heading: "Move your body to sustain it", body: "High energy in the brain needs to be matched with physical movement or it becomes restless and unfocused. Take short active breaks — walk, stretch, play a few minutes of music standing up. Movement keeps your nervous system regulated at this level." },
+      { heading: "Batch your hard tasks", body: "Use this window to knock out multiple things that would be hard at lower energy. Plan, create, decide, communicate. You have the executive function right now to do things that will save you pain later. Bank it." },
+    ]
+  },
+  9: {
+    label: "Very high",
+    colour: "#e74c3c",
+    intro: "Your brain is buzzing. This is powerful — but needs direction or it scatters into everything at once.",
+    sections: [
+      { heading: "Pick one big thing and go", body: "At this energy, the ADHD trap is starting twelve things and finishing none. Before you dive in, write down the one most important thing and commit to it first. Everything else goes on the list — it will still be there." },
+      { heading: "Play music to channel the buzz", body: "High arousal ADHD brain + no anchor = chaos. Put on something with strong rhythm and energy that matches your state. Let the music take the edge off the buzz so the energy becomes directed rather than scattered." },
+      { heading: "Create something ambitious", body: "This is when your artistic brain can do things that genuinely surprise you. Open a blank canvas, start the big design, write the pitch, map out the idea you've been sitting on. Very high energy is rare — don't waste it on safe, small tasks." },
+      { heading: "Set a check-in timer every 30 minutes", body: "You're at risk of hyperfocusing on something unimportant or burning through your energy too fast. Set a timer, surface every 30 minutes, and ask: is this still the right thing to be doing? Stay in control of where the energy goes." },
+    ]
+  },
+  10: {
+    label: "Full power",
+    colour: "#e74c3c",
+    intro: "Full tank. Rare and valuable. This is the state where you can do your best work, build things, and feel like yourself. Spend it wisely.",
+    sections: [
+      { heading: "Do the thing you've been scared to start", body: "Full energy removes the ADHD activation barrier. Whatever project, idea, or task has been sitting on the shelf because it felt too big — start it now. You won't always have this access to yourself. Use it." },
+      { heading: "Create without limits", body: "Give yourself a session of completely unconstrained creative output. Draw, play, design, build — purely for the joy of it. At full energy your artistic brain is at its most alive. Let it run." },
+      { heading: "Plan while you can", body: "ADHD makes planning hard at low energy. While you're at full capacity, map out your week, set your priorities, break down big goals into steps. Future-you will be grateful you did it now rather than when you're at a 3." },
+      { heading: "Be careful with stimulation", body: "Full energy ADHD can tip into overstimulation if you pile too much in. Avoid doom-scrolling, loud chaotic environments, or task-switching. Protect this state. It's doing its job — don't disrupt it." },
+    ]
+  },
+};
+
+function renderEnergyAdvice(v) {
+  const data = energyAdvice[v];
+  if (!data) return;
+  document.getElementById('energyAdviceTitle').textContent = 'Energy ' + v + '/10 — ' + data.label;
+  document.getElementById('energyAdviceTitle').style.color = data.colour;
+  const body = document.getElementById('energyAdviceBody');
+  body.innerHTML = `
+    <p style="font-size:0.88rem;font-weight:600;color:#ffaaaa;line-height:1.6;padding-bottom:4px;border-bottom:1px solid rgba(255,255,255,0.07)">${data.intro}</p>
+    ${data.sections.map(s => `
+      <div>
+        <div style="font-size:0.72rem;text-transform:uppercase;letter-spacing:1.5px;font-weight:800;color:${data.colour};margin-bottom:5px">${s.heading}</div>
+        <div style="font-size:0.85rem;font-weight:600;color:#ccc;line-height:1.65">${s.body}</div>
+      </div>
+    `).join('')}
+  `;
+}
+
+const resets={
+ breath:{title:' 4-7-8 Breathing',body:'Breathe <b>in</b> for 4 counts…<br>Hold for 7 counts…<br>Breathe <b>out</b> for 8 counts…<br><br>Repeat 4 times. Activates your nervous system\'s off switch. '},
+ ground:{title:' 5-4-3-2-1 Grounding',body:'Name 5 things you can <b>see</b> <br>Name 4 things you can <b>touch</b> <br>Name 3 things you can <b>hear</b> <br>Name 2 things you can <b>smell</b> <br>Name 1 thing you can <b>taste</b> <br><br>Grounds you in the present moment. '},
+ move:{title:' 2 Min Body Reset',body:'Stand up now <br><br>• Shake hands & wrists (30s)<br>• Roll shoulders back (30s)<br>• Walk to a different room<br>• Splash cold water on your face<br><br>Blood flow resets your brain. '},
+};
+function showReset(k){
+ const r=resets[k];
+ document.getElementById('resetTitle').textContent=r.title;
+ document.getElementById('resetBody').innerHTML=r.body;
+ const c=document.getElementById('resetCard');
+ c.style.display='block';
+ c.scrollIntoView({behavior:'smooth'});
+}
+
+// ── Timer ──────────────────────────────────────────────
+let tDur=25*60, tRem=25*60, tInt=null, tOn=false, tName='Focus';
+
+function setMode(m,label,btn){
+ if(tOn) return;
+ tDur=m*60; tRem=m*60; tName=label;
+ document.querySelectorAll('.tm').forEach(b=>b.classList.remove('on'));
+ btn.classList.add('on');
+ document.getElementById('tLabel').textContent=label;
+ renderTimer();
+}
+
+function toggleTimer(){ tOn ? pauseTimer() : startTimer(); }
+
+function startTimer(){
+ tOn=true; document.getElementById('tBtn').textContent='⏸ Pause';
+ tInt=setInterval(()=>{ tRem--; renderTimer(); if(tRem<=0) timerDone(); },1000);
+}
+
+function pauseTimer(){
+ tOn=false; clearInterval(tInt);
+ document.getElementById('tBtn').textContent='▶ Resume';
+}
+
+function resetTimer(){
+ clearInterval(tInt); tOn=false; tRem=tDur;
+ document.getElementById('tBtn').textContent='▶ Start';
+ renderTimer();
+}
+
+function timerDone(){
+ clearInterval(tInt); tOn=false;
+ document.getElementById('tBtn').textContent='▶ Start';
+ tRem=0; renderTimer();
+ if(tName==='Focus'||tName==='Quick blast'){
+ const mins=Math.round(tDur/60);
+ S.focusMins+=mins; S.focusSess++; S.pts+=15;
+ document.getElementById('fMins').textContent=S.focusMins;
+ document.getElementById('fSess').textContent=S.focusSess;
+ save(); updateStats();
+ showRewardSimple('','FOCUS SESSION DONE!',`${mins} minutes of pure focus!`);
+ } else { toast('Break over — ready to go? '); }
+}
+
+function renderTimer(){
+ const m=Math.floor(tRem/60), s=tRem%60;
+ document.getElementById('tDisplay').textContent=`${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+ const deg=((tDur-tRem)/tDur)*360;
+ document.getElementById('ring').style.background=`conic-gradient(var(--b) ${deg}deg, rgba(255,255,255,0.07) 0deg)`;
+}
+
+// ── Reward ─────────────────────────────────────────────
+const rews=[
+ {e:'',t:'NAILED IT!'}, {e:'',t:'ON FIRE!'},
+ {e:'⭐',t:'SUPERSTAR!'}, {e:'',t:'CRUSHED IT!'},
+ {e:'',t:'BULLSEYE!'}, {e:'',t:'BEAUTIFUL!'},
+];
+
+function showReward(taskText){
+ const r=rews[Math.floor(Math.random()*rews.length)];
+ document.getElementById('re').textContent=r.e;
+ document.getElementById('rt').textContent=r.t;
+ document.getElementById('rs').textContent=`"${taskText}" — done! `;
+ document.getElementById('reward').classList.add('on');
+ document.getElementById('overlay').classList.add('on');
+ confetti();
+}
+
+function showRewardSimple(e,t,s){
+ document.getElementById('re').textContent=e;
+ document.getElementById('rt').textContent=t;
+ document.getElementById('rs').textContent=s;
+ document.getElementById('reward').classList.add('on');
+ document.getElementById('overlay').classList.add('on');
+ confetti();
+}
+
+function closeReward(){
+ document.getElementById('reward').classList.remove('on');
+ document.getElementById('overlay').classList.remove('on');
+}
+
+// ── Confetti ───────────────────────────────────────────
+function confetti(){
+ const cv=document.getElementById('confetti'), ctx=cv.getContext('2d');
+ cv.width=innerWidth; cv.height=innerHeight;
+ const cols=['#e74c3c','#c0392b','#ff6b6b','#ff8c00','#ff4444','#ffffff','#ff8a80'];
+ const ps=Array.from({length:100},()=>({
+ x:Math.random()*cv.width, y:-10,
+ size:Math.random()*7+3,
+ c:cols[Math.floor(Math.random()*cols.length)],
+ vx:(Math.random()-.5)*4, vy:Math.random()*4+2,
+ r:Math.random()*360, rv:(Math.random()-.5)*6
+ }));
+ let f=0;
+ (function draw(){
+ if(f++>130){ctx.clearRect(0,0,cv.width,cv.height);return;}
+ ctx.clearRect(0,0,cv.width,cv.height);
+ ps.forEach(p=>{
+ p.x+=p.vx; p.y+=p.vy; p.r+=p.rv;
+ ctx.save(); ctx.translate(p.x,p.y); ctx.rotate(p.r*Math.PI/180);
+ ctx.fillStyle=p.c; ctx.globalAlpha=Math.max(0,1-f/100);
+ ctx.fillRect(-p.size/2,-p.size/2,p.size,p.size);
+ ctx.restore();
+ });
+ requestAnimationFrame(draw);
+ })();
+}
+
+// ── Stats & levels ─────────────────────────────────────
+const levels=[[0,'Level 1'],[100,'Level 2'],[300,'Level 3'],[600,'Level 4'],[1000,'Level 5'],[1500,'Level 6'],[2500,'Level 7'],[4000,'Level 8'],[6000,'Level 9'],[9000,'Level 10']];
+
+function updateStats(){
+ document.getElementById('sPoints').textContent=S.pts;
+ document.getElementById('sStreak').textContent=S.streak;
+ document.getElementById('sDone').textContent=S.doneToday;
+ const lv=levels.filter(l=>S.pts>=l[0]).pop();
+ document.getElementById('sLevel').textContent=lv[1];
+ document.getElementById('fMins').textContent=S.focusMins;
+ document.getElementById('fSess').textContent=S.focusSess;
+}
+
+// ── Tabs ───────────────────────────────────────────────
+function go(name,btn){
+ document.querySelectorAll('.panel').forEach(p=>p.classList.remove('on'));
+ document.querySelectorAll('.tab').forEach(b=>b.classList.remove('on'));
+ document.getElementById('panel-'+name).classList.add('on');
+ btn.classList.add('on');
+}
+
+function goByName(name){
+ document.querySelectorAll('.panel').forEach(p=>p.classList.remove('on'));
+ document.querySelectorAll('.tab').forEach(b=>{
+ if(b.textContent.toLowerCase().includes(name)) b.classList.add('on');
+ else b.classList.remove('on');
+ });
+ document.getElementById('panel-'+name).classList.add('on');
+}
+
+// ── Toast ──────────────────────────────────────────────
+let toastTimer;
+function toast(msg){
+ const el=document.getElementById('toast');
+ el.textContent=msg; el.classList.add('on');
+ clearTimeout(toastTimer);
+ toastTimer=setTimeout(()=>el.classList.remove('on'),2400);
+}
+
+// ── Helpers ────────────────────────────────────────────
+function esc(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function catLbl(c){return{personal:' Personal',work:' Work',health:' Health',social:' Social'}[c]||c;}
+function priLbl(p){return{urgent:' Urgent',normal:' Normal',low:' Low'}[p]||p;}
+function flash(id){const el=document.getElementById(id);el.style.borderColor='var(--red)';setTimeout(()=>el.style.borderColor='',700);}
+
+// ── Init ───────────────────────────────────────────────
+function startApp(){
+ loadQuote();
+ document.getElementById('tipTxt').textContent=tips[0];
+ renderTasks(); renderGoals(); renderIdeas(); renderWins();
+ updateStats(); renderTimer();
+ renderEnergyAdvice(parseInt(document.getElementById('energyR').value));
+ document.getElementById('dumpTxt').value=S.dump||'';
+}
+</script>
+</body>
+</html>
