@@ -529,7 +529,7 @@
 
  /* Safe area for iPhone notch */
  @supports (padding: max(0px)) {
-   .wrap { padding-top: max(16px, env(safe-area-inset-top)); padding-bottom: max(40px, env(safe-area-inset-bottom)); }
+   .wrap { padding-top: max(60px, calc(env(safe-area-inset-top) + 16px)); padding-bottom: max(40px, env(safe-area-inset-bottom)); }
    .toast { bottom: max(20px, env(safe-area-inset-bottom)); }
  }
 
