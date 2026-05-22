@@ -1199,7 +1199,7 @@
 
  <div class="card">
   <div class="label">DONT STRESS! Put all thoughts here, let me organise this for you ;)</div>
-  <textarea class="dump" id="dumpTxt" placeholder="e.g. need to call mum back, design the logo, my back hurts, post something on instagram, pick up food, that melody idea from this morning, reply to sarah…"></textarea>
+  <textarea class="dump" id="dumpTxt" placeholder="e.g. need to call mum back, design the logo, my back hurts, post something on instagram, pick up food, that melody idea from this morning, reply to sarah… (Enter to organise, Shift+Enter for new line)" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();organiseThoughts();}"></textarea>
   <div class="row" style="margin-top:10px">
    <button class="btn btn-p" style="flex:1" onclick="organiseThoughts()">Organise into tasks</button>
    <button class="mic-btn" id="micBtn" onclick="toggleMic()">Mic<span id="micWave"><span class="wave-bar" style="height:6px"></span><span class="wave-bar" style="height:12px"></span><span class="wave-bar" style="height:18px"></span><span class="wave-bar" style="height:10px"></span><span class="wave-bar" style="height:14px"></span></span></button>
@@ -1255,6 +1255,14 @@
  <div class="card" id="energyAdviceCard">
   <div class="label" id="energyAdviceTitle">How to work with your energy right now</div>
   <div id="energyAdviceBody" style="display:flex;flex-direction:column;gap:14px"></div>
+ </div>
+
+ <div class="card" id="moodAiCard" style="display:none">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+   <div class="label" id="moodAiTitle" style="margin-bottom:0">✦ Mr. Sherlock's take</div>
+   <span id="moodAiBadge" style="font-size:0.6rem;font-weight:800;text-transform:uppercase;letter-spacing:1px;color:var(--sub);opacity:0.7">today</span>
+  </div>
+  <div id="moodAiBody" style="font-size:0.88rem;font-weight:600;color:#ddd;line-height:1.7"></div>
  </div>
 
  </div>
@@ -1385,7 +1393,8 @@ let S = {
  dump:'', ints:['','',''],
  pts:0, streak:0, doneToday:0,
  focusMins:0, focusSess:0,
- lastDate:''
+ lastDate:'',
+ moodAiFeedback:{}
 };
 
 // Save to localStorage immediately, then push to Supabase in background
@@ -2046,6 +2055,83 @@ function updateE(v){
   document.getElementById('eVal').textContent=v+' / 10';
   popEl('eVal');
   renderEnergyAdvice(parseInt(v));
+  fetchMoodAiFeedback(parseInt(v));
+}
+
+async function fetchMoodAiFeedback(level){
+  const card = document.getElementById('moodAiCard');
+  const body = document.getElementById('moodAiBody');
+  const title = document.getElementById('moodAiTitle');
+  if(!card||!body) return;
+
+  // Check if we have feedback for this level today
+  const today = new Date().toISOString().slice(0,10);
+  if(!S.moodAiFeedback) S.moodAiFeedback = {};
+  const key = today+'_'+level;
+  if(S.moodAiFeedback[key]){
+    // Already have it — just show it
+    card.style.display = 'block';
+    title.textContent = '✦ Mr. Sherlock on your ' + level + '/10 energy';
+    body.innerHTML = S.moodAiFeedback[key];
+    card.style.animation = 'none';
+    void card.offsetWidth;
+    card.style.animation = 'slideInUp 0.4s ease both';
+    return;
+  }
+
+  if(!getKey()){
+    // No key — show card with prompt to set key
+    card.style.display = 'block';
+    title.textContent = '✦ Mr. Sherlock';
+    body.innerHTML = '<span style="color:var(--sub);font-size:0.82rem">Add your AI key in Settings to get personalised energy feedback each day.</span>';
+    return;
+  }
+
+  // Show loading state
+  card.style.display = 'block';
+  title.textContent = '✦ Mr. Sherlock is thinking…';
+  body.innerHTML = '<div style="display:flex;gap:6px;align-items:center;color:var(--sub);font-size:0.82rem"><span class="wave-bar" style="height:6px;animation-delay:0s"></span><span class="wave-bar" style="height:10px;animation-delay:0.1s"></span><span class="wave-bar" style="height:14px;animation-delay:0.2s"></span><span class="wave-bar" style="height:10px;animation-delay:0.3s"></span><span class="wave-bar" style="height:6px;animation-delay:0.4s"></span>&nbsp; Getting your read…</div>';
+
+  const levelLabels = {1:'running on empty',2:'very low',3:'low',4:'below average',5:'neutral',6:'okay',7:'good',8:'high',9:'very high',10:'absolutely buzzing'};
+  const prompt = `You are Mr. Sherlock, an ADHD productivity coach for a 19-year-old girl who is creative, artistic, and neurodivergent. She has just set her energy level to ${level}/10 (${levelLabels[level]||''}).
+
+Write a SHORT, warm, direct personal message about her energy level RIGHT NOW. Be conversational, like a smart supportive friend — not a therapist. Use 2-3 sentences max. Don't give advice lists. Just acknowledge where she's at, validate it, and drop one genuinely useful insight or reframe specific to ${level}/10 energy for an ADHD brain. Keep it under 60 words. No bullet points. No headers. Just flowing sentences.`;
+
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method:'POST',
+      headers:{
+        'Content-Type':'application/json',
+        'x-api-key':getKey(),
+        'anthropic-version':'2023-06-01',
+        'anthropic-dangerous-direct-browser-access':'true'
+      },
+      body:JSON.stringify({
+        model:'claude-haiku-4-5-20251001',
+        max_tokens:150,
+        messages:[{role:'user',content:prompt}]
+      })
+    });
+    if(!res.ok) throw new Error('API '+res.status);
+    const data = await res.json();
+    const text = data.content[0].text.trim();
+
+    // Cache it for today
+    S.moodAiFeedback[key] = text;
+    // Clean old keys (keep only last 30 days worth)
+    const keys = Object.keys(S.moodAiFeedback);
+    if(keys.length > 100) keys.slice(0, keys.length-100).forEach(k=>delete S.moodAiFeedback[k]);
+    save();
+
+    title.textContent = '✦ Mr. Sherlock on your ' + level + '/10 energy';
+    body.textContent = text;
+    card.style.animation = 'none';
+    void card.offsetWidth;
+    card.style.animation = 'slideInUp 0.4s ease both';
+  } catch(e){
+    body.innerHTML = '<span style="color:var(--sub);font-size:0.82rem">Couldn\'t reach Mr. Sherlock right now — try again in a sec.</span>';
+    title.textContent = '✦ Mr. Sherlock';
+  }
 }
 
 const energyAdvice = {
@@ -2465,6 +2551,7 @@ function startApp(){
  renderTasks(); renderGoals(); renderIdeas(); renderWins();
  updateStats(); renderTimer();
  renderEnergyAdvice(parseInt(document.getElementById('energyR').value));
+ fetchMoodAiFeedback(parseInt(document.getElementById('energyR').value));
  document.getElementById('dumpTxt').value=S.dump||'';
  updateKeyStatus();
  updateClock();
