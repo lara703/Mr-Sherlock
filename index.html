@@ -743,10 +743,13 @@
 </div><!-- /wrap -->
 
 <script>
-// ── Supabase config — fill these in after creating your project ──
+// ── Supabase config ──
 const SUPABASE_URL  = 'https://aoohrpvwswpwnocrsxrw.supabase.co';
 const SUPABASE_KEY  = 'sb_publishable_WbrYdg9TqrBRDY7CowyKww_C8wQEWzp';
 const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+// ── Anthropic API key — paste yours here ──
+const ANTHROPIC_KEY = '';
 
 let currentUser = null;
 
@@ -1163,20 +1166,95 @@ function splitIntoTasks(raw){
     .filter(s => s.length > 2);
 }
 
-function organiseThoughts(){
+// ── AI organiser ──────────────────────────────────────
+async function organiseWithAI(raw) {
+  const prompt = `You are helping someone with ADHD organise their thoughts into tasks.
+
+They wrote this conversationally — it may have typos, filler words, slang, run-on sentences:
+"${raw}"
+
+Instructions:
+1. Split into separate, clearly-worded tasks. Fix typos and rephrase naturally but keep the meaning.
+2. Assign priority — "urgent" (today/ASAP), "normal" (soon), or "low" (whenever).
+3. Assign category — "personal", "work", "health", or "social".
+4. Ignore pure filler like "um", "so", "right", "like". Only create a task if there is an actual action.
+
+Respond with ONLY a valid JSON array, no explanation, no markdown. Example:
+[{"text":"Call the doctor","pri":"urgent","cat":"health"},{"text":"Post on Instagram","pri":"normal","cat":"work"}]`;
+
+  const res = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-api-key': ANTHROPIC_KEY,
+      'anthropic-version': '2023-06-01',
+      'anthropic-dangerous-direct-browser-access': 'true'
+    },
+    body: JSON.stringify({
+      model: 'claude-3-haiku-20240307',
+      max_tokens: 1024,
+      messages: [{ role: 'user', content: prompt }]
+    })
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(()=>({}));
+    throw new Error(err.error?.message || 'API error ' + res.status);
+  }
+  const data = await res.json();
+  const text = data.content[0].text.trim();
+  // Strip any accidental markdown code fences
+  const clean = text.replace(/^```[a-z]*\n?/i,'').replace(/```$/,'').trim();
+  return JSON.parse(clean);
+}
+
+async function organiseThoughts(){
   const raw=document.getElementById('dumpTxt').value.trim();
   if(!raw){toast('Nothing to organise yet');return;}
   S.dump=raw; save();
-  const chunks=splitIntoTasks(raw);
-  if(!chunks.length){toast('Could not find any separate thoughts');return;}
-  let uid = Date.now();
-  pendingThoughts=chunks.map(text=>{
-    const clean = correctTypos(text);
-    return { id:uid++, text:clean, cat:guessCat(clean), pri:guessPri(clean), done:false };
-  });
+
+  if(ANTHROPIC_KEY){
+    // AI path
+    const btn = document.querySelector('[onclick="organiseThoughts()"]');
+    const orig = btn.textContent;
+    btn.textContent = 'Thinking...';
+    btn.disabled = true;
+    try {
+      const results = await organiseWithAI(raw);
+      if(!results || !results.length){ toast('AI returned nothing — try again'); btn.textContent=orig; btn.disabled=false; return; }
+      let uid = Date.now();
+      pendingThoughts = results.map(r => ({
+        id: uid++,
+        text: r.text || '',
+        cat: ['personal','work','health','social'].includes(r.cat) ? r.cat : 'personal',
+        pri: ['urgent','normal','low'].includes(r.pri) ? r.pri : 'normal',
+        done: false
+      })).filter(t => t.text.length > 1);
+    } catch(e) {
+      console.error('AI error:', e);
+      toast('AI error — using smart sort instead');
+      pendingThoughts = splitIntoTasks(raw).map((text,i) => {
+        const clean = correctTypos(text);
+        let uid2 = Date.now() + i;
+        return { id: uid2, text: clean, cat: guessCat(clean), pri: guessPri(clean), done: false };
+      });
+    }
+    btn.textContent = orig;
+    btn.disabled = false;
+  } else {
+    // Keyword fallback
+    const chunks = splitIntoTasks(raw);
+    if(!chunks.length){ toast('Could not find any separate thoughts'); return; }
+    let uid = Date.now();
+    pendingThoughts = chunks.map(text => {
+      const clean = correctTypos(text);
+      return { id: uid++, text: clean, cat: guessCat(clean), pri: guessPri(clean), done: false };
+    });
+  }
+
+  if(!pendingThoughts.length){ toast('Could not find any separate thoughts'); return; }
   renderPendingPreview();
-  const card=document.getElementById('thoughtPreviewCard');
-  card.style.display='block';
+  const card = document.getElementById('thoughtPreviewCard');
+  card.style.display = 'block';
   card.scrollIntoView({behavior:'smooth'});
 }
 
