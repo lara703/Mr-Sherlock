@@ -889,6 +889,84 @@
  /* ── Reward pop ── */
  .reward.on { animation: popIn 0.4s cubic-bezier(0.34,1.56,0.64,1) forwards; transform-origin:center; }
 
+ /* ── MORE ANIMATIONS ── */
+ @keyframes floatBob    { 0%,100%{transform:translateY(0) rotate(0deg)} 33%{transform:translateY(-6px) rotate(-1deg)} 66%{transform:translateY(-3px) rotate(1deg)} }
+ @keyframes streakFlame { 0%,100%{text-shadow:0 0 8px rgba(255,140,0,0.8)} 50%{text-shadow:0 0 22px rgba(255,80,0,1), 0 0 40px rgba(255,140,0,0.6)} }
+ @keyframes columnBounce{ 0%,100%{transform:translateY(0)} 35%{transform:translateY(-5px)} 65%{transform:translateY(2px)} }
+ @keyframes inputGlow   { 0%,100%{box-shadow:0 0 0 0 transparent} 50%{box-shadow:0 0 0 3px rgba(231,76,60,0.25), 0 0 20px rgba(231,76,60,0.1)} }
+ @keyframes waveBar     { 0%,100%{transform:scaleY(0.4)} 50%{transform:scaleY(1)} }
+ @keyframes sparkle     { 0%,100%{opacity:0;transform:scale(0) rotate(0deg)} 50%{opacity:1;transform:scale(1) rotate(180deg)} }
+ @keyframes slideTabIn  { from{opacity:0;transform:translateX(30px)} to{opacity:1;transform:translateX(0)} }
+ @keyframes slideTabInL { from{opacity:0;transform:translateX(-30px)} to{opacity:1;transform:translateX(0)} }
+ @keyframes urgencyPulse{ 0%,100%{box-shadow:0 0 30px rgba(192,57,43,0.2)} 50%{box-shadow:0 0 70px rgba(255,50,50,0.7), 0 0 120px rgba(231,76,60,0.3)} }
+ @keyframes progressCelebrate { 0%{filter:brightness(1)} 50%{filter:brightness(1.5) saturate(1.5)} 100%{filter:brightness(1)} }
+ @keyframes ideaFloat   { 0%{opacity:0;transform:translateY(12px) scale(0.95)} 60%{transform:translateY(-3px) scale(1.02)} 100%{opacity:1;transform:translateY(0) scale(1)} }
+ @keyframes strikeThroughGoal { from{width:0} to{width:100%} }
+ @keyframes headerPulse { 0%,100%{opacity:1} 50%{opacity:0.7} }
+ @keyframes sectionReveal { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
+
+ /* Textarea glow while typing */
+ textarea:focus { animation: inputGlow 2s ease infinite; }
+ input[type=text]:focus { animation: inputGlow 2s ease infinite; }
+
+ /* Streak flame */
+ #sStreak { animation: streakFlame 2s ease infinite; color: var(--yellow) !important; }
+
+ /* Column header bounce when task dropped */
+ .kanban-col-header.col-bounce { animation: columnBounce 0.4s cubic-bezier(0.34,1.56,0.64,1); }
+
+ /* Timer urgency (<60s) */
+ .ring.urgent { animation: urgencyPulse 0.7s ease-in-out infinite !important; }
+
+ /* Progress 100% celebrate */
+ .prog-fill.celebrate { animation: progressCelebrate 0.6s ease 3; }
+
+ /* Ideas animate in */
+ #ideaList .task { animation: ideaFloat 0.35s cubic-bezier(0.22,1,0.36,1) both; }
+
+ /* Goal done strikethrough */
+ .goal-item.done .goal-txt { position:relative; }
+ .goal-item.done .goal-txt::after {
+   content:''; position:absolute; left:0; top:50%;
+   height:2px; background:var(--b); border-radius:2px;
+   animation: strikeThroughGoal 0.4s ease forwards;
+ }
+
+ /* Energy advice section stagger */
+ #energyAdviceBody > * { animation: sectionReveal 0.35s ease both; }
+ #energyAdviceBody > *:nth-child(1) { animation-delay:0.05s }
+ #energyAdviceBody > *:nth-child(2) { animation-delay:0.12s }
+ #energyAdviceBody > *:nth-child(3) { animation-delay:0.19s }
+ #energyAdviceBody > *:nth-child(4) { animation-delay:0.26s }
+ #energyAdviceBody > *:nth-child(5) { animation-delay:0.33s }
+
+ /* Mic soundwave bars */
+ .wave-bar { display:inline-block; width:3px; border-radius:3px; background:var(--b); margin:0 1px; animation: waveBar 0.6s ease-in-out infinite; }
+ .wave-bar:nth-child(2){animation-delay:0.1s} .wave-bar:nth-child(3){animation-delay:0.2s}
+ .wave-bar:nth-child(4){animation-delay:0.3s} .wave-bar:nth-child(5){animation-delay:0.15s}
+ #micWave { display:none; align-items:flex-end; gap:1px; height:18px; margin-left:6px; }
+ #micWave.on { display:inline-flex; }
+
+ /* FAB icon rotate on click */
+ .quick-fab.open { transform: rotate(45deg) scale(1.1) !important; }
+
+ /* Kanban task lift on hover */
+ .kanban-task { transition: transform 0.18s ease, border-color 0.18s ease, background 0.18s ease, box-shadow 0.18s ease; }
+ .kanban-task:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(192,57,43,0.2); }
+
+ /* ── COLOUR THEMES ── */
+ .theme-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:10px; }
+ .theme-swatch {
+   height: 42px; border-radius: 12px; cursor: pointer;
+   border: 2.5px solid transparent;
+   transition: transform 0.2s cubic-bezier(0.34,1.56,0.64,1), border-color 0.2s;
+   position: relative; overflow: hidden;
+ }
+ .theme-swatch:hover { transform: scale(1.08); }
+ .theme-swatch.active { border-color: white; transform: scale(1.08); }
+ .theme-swatch.active::after { content:'✓'; position:absolute; inset:0; display:flex; align-items:center; justify-content:center; color:white; font-weight:900; font-size:1rem; font-family:'Nunito',sans-serif; }
+ .theme-label { font-size:0.6rem; font-weight:800; color:var(--sub); text-transform:uppercase; letter-spacing:1px; text-align:center; margin-top:3px; }
+
 </style>
 </head>
 <body>
@@ -928,19 +1006,63 @@
 
 <!-- Settings modal -->
 <div class="settings-modal" id="settingsModal" onclick="if(event.target===this)closeSettings()">
-  <div class="settings-box">
+  <div class="settings-box" style="max-height:90vh;overflow-y:auto">
     <div style="display:flex;justify-content:space-between;align-items:center">
-      <h2>AI Settings</h2>
+      <h2>Settings</h2>
       <span id="keyStatus" class="key-status inactive">No key set</span>
     </div>
-    <p>Paste your Anthropic API key here. It saves to <b>this device only</b> — it never touches GitHub or any server.</p>
-    <input type="password" id="keyInput" placeholder="sk-ant-api03-..." autocomplete="off" style="font-family:monospace;font-size:0.8rem;letter-spacing:0.5px">
-    <div style="display:flex;gap:8px">
-      <button class="btn btn-p" style="flex:1" onclick="saveKey()">Save key</button>
-      <button class="btn btn-g" onclick="clearKey()">Remove key</button>
-      <button class="btn btn-g" onclick="closeSettings()">Close</button>
+
+    <!-- Colour themes -->
+    <div>
+      <p style="font-size:0.72rem;font-weight:800;text-transform:uppercase;letter-spacing:1.5px;color:var(--sub);margin-bottom:10px">Colour theme</p>
+      <div class="theme-grid" id="themeGrid">
+        <div>
+          <div class="theme-swatch active" id="theme-red" onclick="applyTheme('red')" style="background:linear-gradient(135deg,#c0392b,#ff6b6b)"></div>
+          <div class="theme-label">Red</div>
+        </div>
+        <div>
+          <div class="theme-swatch" id="theme-purple" onclick="applyTheme('purple')" style="background:linear-gradient(135deg,#6c3483,#bb8fce)"></div>
+          <div class="theme-label">Purple</div>
+        </div>
+        <div>
+          <div class="theme-swatch" id="theme-ocean" onclick="applyTheme('ocean')" style="background:linear-gradient(135deg,#1a5276,#7fb3d3)"></div>
+          <div class="theme-label">Ocean</div>
+        </div>
+        <div>
+          <div class="theme-swatch" id="theme-forest" onclick="applyTheme('forest')" style="background:linear-gradient(135deg,#1e8449,#82e0aa)"></div>
+          <div class="theme-label">Forest</div>
+        </div>
+        <div>
+          <div class="theme-swatch" id="theme-gold" onclick="applyTheme('gold')" style="background:linear-gradient(135deg,#9a7d0a,#f4d03f)"></div>
+          <div class="theme-label">Gold</div>
+        </div>
+        <div>
+          <div class="theme-swatch" id="theme-pink" onclick="applyTheme('pink')" style="background:linear-gradient(135deg,#c0392b,#ff80cc)"></div>
+          <div class="theme-label">Pink</div>
+        </div>
+        <div>
+          <div class="theme-swatch" id="theme-midnight" onclick="applyTheme('midnight')" style="background:linear-gradient(135deg,#1a237e,#7986cb)"></div>
+          <div class="theme-label">Midnight</div>
+        </div>
+        <div>
+          <div class="theme-swatch" id="theme-sunset" onclick="applyTheme('sunset')" style="background:linear-gradient(135deg,#c0392b,#f39c12)"></div>
+          <div class="theme-label">Sunset</div>
+        </div>
+      </div>
     </div>
-    <p style="font-size:0.7rem;opacity:0.5">Get your key at console.anthropic.com → API Keys</p>
+
+    <div style="border-top:1px solid var(--border);padding-top:14px">
+      <p style="font-size:0.72rem;font-weight:800;text-transform:uppercase;letter-spacing:1.5px;color:var(--sub);margin-bottom:10px">AI key</p>
+      <p style="font-size:0.8rem;color:var(--sub);font-weight:600;line-height:1.5;margin-bottom:10px">Paste your Anthropic API key here. Saves to <b>this device only</b> — never touches GitHub.</p>
+      <input type="password" id="keyInput" placeholder="sk-ant-api03-..." autocomplete="off" style="font-family:monospace;font-size:0.8rem;letter-spacing:0.5px">
+      <div style="display:flex;gap:8px;margin-top:10px">
+        <button class="btn btn-p" style="flex:1" onclick="saveKey()">Save key</button>
+        <button class="btn btn-g" onclick="clearKey()">Remove</button>
+      </div>
+      <p style="font-size:0.7rem;opacity:0.5;margin-top:8px">console.anthropic.com → API Keys</p>
+    </div>
+
+    <button class="btn btn-g" style="width:100%" onclick="closeSettings()">Close</button>
   </div>
 </div>
 
@@ -1086,7 +1208,7 @@
   <textarea class="dump" id="dumpTxt" placeholder="e.g. need to call mum back, design the logo, my back hurts, post something on instagram, pick up food, that melody idea from this morning, reply to sarah…"></textarea>
   <div class="row" style="margin-top:10px">
    <button class="btn btn-p" style="flex:1" onclick="organiseThoughts()">Organise into tasks</button>
-   <button class="mic-btn" id="micBtn" onclick="toggleMic()">Mic</button>
+   <button class="mic-btn" id="micBtn" onclick="toggleMic()">Mic<span id="micWave"><span class="wave-bar" style="height:6px"></span><span class="wave-bar" style="height:12px"></span><span class="wave-bar" style="height:18px"></span><span class="wave-bar" style="height:10px"></span><span class="wave-bar" style="height:14px"></span></span></button>
    <button class="btn btn-g" onclick="clearRant()">Clear</button>
   </div>
  </div>
@@ -1185,6 +1307,41 @@
 const SUPABASE_URL  = 'https://aoohrpvwswpwnocrsxrw.supabase.co';
 const SUPABASE_KEY  = 'sb_publishable_WbrYdg9TqrBRDY7CowyKww_C8wQEWzp';
 const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+// ── Colour themes ─────────────────────────────────────
+const THEMES = {
+  red:      { a:'#c0392b', b:'#e74c3c', c:'#ff6b6b', d:'#ff4444', yellow:'#ff8c00' },
+  purple:   { a:'#6c3483', b:'#8e44ad', c:'#bb8fce', d:'#9b59b6', yellow:'#d7bde2' },
+  ocean:    { a:'#1a5276', b:'#2980b9', c:'#7fb3d3', d:'#3498db', yellow:'#aed6f1' },
+  forest:   { a:'#1e8449', b:'#27ae60', c:'#82e0aa', d:'#2ecc71', yellow:'#a9dfbf' },
+  gold:     { a:'#9a7d0a', b:'#d4ac0d', c:'#f4d03f', d:'#f1c40f', yellow:'#fdebd0' },
+  pink:     { a:'#922b21', b:'#e91e8c', c:'#ff80cc', d:'#ff4da6', yellow:'#ffd6ec' },
+  midnight: { a:'#1a237e', b:'#3949ab', c:'#7986cb', d:'#5c6bc0', yellow:'#c5cae9' },
+  sunset:   { a:'#c0392b', b:'#e67e22', c:'#f0b27a', d:'#f39c12', yellow:'#fdebd0' },
+};
+
+function applyTheme(name){
+  const t = THEMES[name]; if(!t) return;
+  const r = document.documentElement;
+  r.style.setProperty('--a', t.a);
+  r.style.setProperty('--b', t.b);
+  r.style.setProperty('--c', t.c);
+  r.style.setProperty('--d', t.d);
+  r.style.setProperty('--yellow', t.yellow);
+  // Also update loading screen gradient colours
+  r.style.setProperty('--red', t.b);
+  localStorage.setItem('mr_theme', name);
+  // Update active swatch
+  document.querySelectorAll('.theme-swatch').forEach(s=>s.classList.remove('active'));
+  const sw = document.getElementById('theme-'+name);
+  if(sw) sw.classList.add('active');
+  toast('Theme: '+name);
+}
+
+function loadTheme(){
+  const saved = localStorage.getItem('mr_theme') || 'red';
+  applyTheme(saved);
+}
 
 // ── Anthropic API key — stored in localStorage, never in code ──
 function getKey(){ return localStorage.getItem('anthropic_key') || ''; }
@@ -1391,8 +1548,10 @@ function renderTasks(){
   });
   const total = S.tasks.length, done = S.tasks.filter(t=>t.done).length;
   const pct = total ? Math.round(done/total*100) : 0;
-  document.getElementById('progFill').style.width = pct+'%';
+  const fill = document.getElementById('progFill');
+  fill.style.width = pct+'%';
   document.getElementById('progLbl').textContent = `${done} / ${total} done`;
+  if(pct===100 && total>0){ fill.classList.add('celebrate'); setTimeout(()=>fill.classList.remove('celebrate'),2000); }
   bindTouchDrag();
 }
 
@@ -1454,7 +1613,12 @@ function onDrop(e, pri){
   e.currentTarget.classList.remove('drag-over');
   if(dragId === null) return;
   const t = S.tasks.find(t=>t.id===dragId);
-  if(t && t.pri !== pri){ t.pri = pri; save(); renderTasks(); toast('Moved to '+pri); }
+  if(t && t.pri !== pri){
+    t.pri = pri; save(); renderTasks(); toast('Moved to '+pri);
+    // Bounce the column header
+    const hdr = e.currentTarget.previousElementSibling;
+    if(hdr){ hdr.classList.add('col-bounce'); setTimeout(()=>hdr.classList.remove('col-bounce'),450); }
+  }
   dragId = null;
 }
 
@@ -2079,6 +2243,10 @@ function renderTimer(){
  document.getElementById('tDisplay').textContent=`${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
  const deg=((tDur-tRem)/tDur)*360;
  document.getElementById('ring').style.background=`conic-gradient(var(--b) ${deg}deg, rgba(255,255,255,0.07) 0deg)`;
+ // Urgency mode under 60s
+ const ring = document.getElementById('ring');
+ if(tOn && tRem <= 60 && tRem > 0) ring.classList.add('urgent');
+ else ring.classList.remove('urgent');
 }
 
 // ── Reward ─────────────────────────────────────────────
@@ -2207,7 +2375,9 @@ function toggleMic(){
   recognition.onstart = ()=>{
     micActive = true;
     const btn = document.getElementById('micBtn');
-    btn.textContent = 'Stop'; btn.classList.add('active');
+    btn.childNodes[0].textContent = 'Stop';
+    btn.classList.add('active');
+    document.getElementById('micWave').classList.add('on');
     toast('Listening — speak your rant');
   };
 
@@ -2223,14 +2393,18 @@ function toggleMic(){
   recognition.onend = ()=>{
     micActive = false;
     const btn = document.getElementById('micBtn');
-    btn.textContent = 'Mic'; btn.classList.remove('active');
+    btn.childNodes[0].textContent = 'Mic';
+    btn.classList.remove('active');
+    document.getElementById('micWave').classList.remove('on');
     document.getElementById('dumpTxt').value = micFinal;
   };
 
   recognition.onerror = e=>{
     micActive = false;
     const btn = document.getElementById('micBtn');
-    btn.textContent = 'Mic'; btn.classList.remove('active');
+    btn.childNodes[0].textContent = 'Mic';
+    btn.classList.remove('active');
+    document.getElementById('micWave').classList.remove('on');
     if(e.error !== 'aborted') toast('Mic error: '+e.error);
   };
 
@@ -2240,10 +2414,12 @@ function toggleMic(){
 // ── Quick capture ──────────────────────────────────────
 function openQuick(){
   document.getElementById('quickModal').classList.add('on');
+  document.querySelector('.quick-fab').classList.add('open');
   setTimeout(()=>document.getElementById('quickIn').focus(), 80);
 }
 function closeQuick(){
   document.getElementById('quickModal').classList.remove('on');
+  document.querySelector('.quick-fab').classList.remove('open');
   document.getElementById('quickIn').value = '';
 }
 function addQuick(){
@@ -2291,7 +2467,8 @@ function startApp(){
  document.getElementById('dumpTxt').value=S.dump||'';
  updateKeyStatus();
  updateClock();
- setInterval(updateClock, 30000); // update every 30s
+ setInterval(updateClock, 30000);
+ loadTheme();
 }
 </script>
 </body>
