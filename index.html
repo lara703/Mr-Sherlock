@@ -1091,38 +1091,71 @@ function correctTypos(text){
 }
 
 function splitIntoTasks(raw){
-  const verbs = 'clean|tidy|wash|hoover|vacuum|brush|iron|fold|dust|mop|sweep|declutter|eat|make|cook|prep|go|get|buy|pick up|call|text|ring|message|reply|email|send|post|write|finish|start|fix|sort|check|pay|book|order|research|design|update|upload|record|film|edit|draw|paint|sketch|plan|prepare|pack|clear|print|submit|apply|contact|shower|bath|run|walk|exercise|gym|study|read|do|work on|organise|organize|charge|download|install|watch|listen|practice|rehearse|sign|fill|complete|remind|follow|log|track|review|schedule|arrange';
+  const verbs = 'clean|tidy|wash|hoover|vacuum|brush|iron|fold|dust|mop|sweep|declutter|eat|make|cook|prep|go|get|buy|pick up|call|text|ring|message|reply|email|send|post|write|finish|start|fix|sort|check|pay|book|order|research|design|update|upload|record|film|edit|draw|paint|sketch|plan|prepare|pack|clear|print|submit|apply|contact|shower|bath|run|walk|exercise|gym|study|read|do|work on|organise|organize|charge|download|install|watch|listen|practice|rehearse|sign|fill|complete|remind|follow|log|track|review|schedule|arrange|take out|drop off|pick up|set up|tidy up|clear out|sort out|figure out|reach out';
 
-  // Step 1: split on newlines and semicolons
-  let chunks = raw
-    .split(/\n|;/)
-    .map(s=>s.replace(/^[\s\-\*•]+|[\s\.]+$/g,'').trim())
-    .filter(s=>s.length>2);
+  // Filler connector phrases that link tasks in conversation — treat as split points
+  const fillerConnectors = [
+    /\band\s+after\s+that\b/gi,
+    /\bafter\s+that\b/gi,
+    /\band\s+then\s+after\b/gi,
+    /\bthen\s+after\s+that\b/gi,
+    /\band\s+then\b/gi,
+    /\boh\s+and\s+also\b/gi,
+    /\boh\s+and\b/gi,
+    /\bnot\s+to\s+mention\b/gi,
+    /\bon\s+top\s+of\s+that\b/gi,
+    /\bas\s+well\s+as\b/gi,
+    /\bi\s+also\s+need\s+to\b/gi,
+    /\bi\s+should\s+also\b/gi,
+    /\bi\s+need\s+to\b/gi,
+    /\bi\s+want\s+to\b/gi,
+    /\bi\s+have\s+to\b/gi,
+    /\bi\s+must\b/gi,
+    /\bdon't\s+forget\s+to\b/gi,
+    /\bdont\s+forget\s+to\b/gi,
+    /\boh\s+yeah\b/gi,
+    /\boh\s+also\b/gi,
+    /\balso\s+need\s+to\b/gi,
+    /\balso\s+gotta\b/gi,
+    /\bgotta\b/gi,
+    /\bwanna\b/gi,
+    /\bone\s+more\s+thing\b/gi,
+    /\banother\s+thing\b/gi,
+    /\bplus\b/gi,
+  ];
 
-  // Step 2: strip leading filler like "I need to"
-  chunks = chunks.map(s=>s.replace(/^i\s+(need|want|have|got|should|must|am going|also need|also want)\s+to\s+/i,'').trim());
+  // Step 1: replace filler connectors with a neutral split marker
+  let cleaned = raw;
+  fillerConnectors.forEach(re => { cleaned = cleaned.replace(re, '|||'); });
 
-  // Step 3: split on commas
-  chunks = chunks.flatMap(chunk=>chunk.split(/,/).map(s=>s.trim()).filter(s=>s.length>2));
+  // Step 2: split on the marker, newlines, semicolons, and commas
+  let chunks = cleaned
+    .split(/\|\|\||[\n;]|,(?![^\(]*\))/)
+    .map(s => s.replace(/^[\s\-\*•]+|[\s\.]+$/g, '').trim())
+    .filter(s => s.length > 2);
 
-  // Step 4: split on "and/then/also [verb]" — catches "brush my teeth AND make my bed"
+  // Step 3: strip leading conversational filler from each chunk
+  const leadingFiller = /^(so\s+|right\s+|basically\s+|literally\s+|honestly\s+|actually\s+|anyway\s+|well\s+|ok\s+|okay\s+|like\s+|um\s+|uh\s+|also\s+|oh\s+|and\s+|but\s+|then\s+)+/i;
+  chunks = chunks.map(s => s.replace(leadingFiller, '').trim()).filter(s => s.length > 2);
+
+  // Step 4: split on "and/then/also [verb]" — "brush my teeth AND make my bed"
   const andVerbRe = new RegExp(`\\s+(?:and|then|also)\\s+(?=(${verbs})(?:\\s|$))`, 'gi');
-  chunks = chunks.flatMap(chunk=>{
-    const parts = chunk.split(andVerbRe).map(s=>s.trim()).filter(s=>s.length>2);
-    return parts.filter((_,i)=>i%2===0);
+  chunks = chunks.flatMap(chunk => {
+    const parts = chunk.split(andVerbRe).map(s => s.trim()).filter(s => s.length > 2);
+    return parts.filter((_, i) => i % 2 === 0);
   });
 
-  // Step 5: split on back-to-back verbs with no connector (e.g. "eat shower go gym")
+  // Step 5: split on back-to-back verbs with no connector ("eat shower go gym")
   const verbRe = new RegExp(`\\s+(?=(${verbs})(?:\\s|$))`, 'gi');
-  chunks = chunks.flatMap(chunk=>{
-    const parts = chunk.split(verbRe).map(s=>s.trim()).filter(s=>s.length>2);
-    return parts.filter((_,i)=>i%2===0);
+  chunks = chunks.flatMap(chunk => {
+    const parts = chunk.split(verbRe).map(s => s.trim()).filter(s => s.length > 2);
+    return parts.filter((_, i) => i % 2 === 0);
   });
 
-  // Step 6: clean up leftover leading connectors and trailing "and"
+  // Step 6: clean trailing filler ("and", "and then", "after that" left at end)
   return chunks
-    .map(s=>s.replace(/^(and|or|also|then|well|but)\s+/i,'').replace(/\s+and$/i,'').trim())
-    .filter(s=>s.length>2);
+    .map(s => s.replace(/\s+(and|then|also|after that|and then|but|so)$/i, '').trim())
+    .filter(s => s.length > 2);
 }
 
 function organiseThoughts(){
