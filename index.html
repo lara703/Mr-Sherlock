@@ -7,7 +7,44 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Mr. Sherlock">
 <meta name="theme-color" content="#0a0a0a">
+<link id="appIcon" rel="apple-touch-icon">
 <title>Mr. Sherlock</title>
+<script>
+(function(){
+  const c = document.createElement('canvas');
+  c.width = c.height = 180;
+  const x = c.getContext('2d');
+  // Background
+  x.fillStyle = '#0a0a0a';
+  x.roundRect(0, 0, 180, 180, 36);
+  x.fill();
+  // Red glow
+  const glow = x.createRadialGradient(90, 90, 20, 90, 90, 90);
+  glow.addColorStop(0, 'rgba(231,76,60,0.25)');
+  glow.addColorStop(1, 'rgba(0,0,0,0)');
+  x.fillStyle = glow;
+  x.fillRect(0, 0, 180, 180);
+  // Magnifying glass circle
+  x.strokeStyle = '#e74c3c';
+  x.lineWidth = 11;
+  x.lineCap = 'round';
+  x.beginPath();
+  x.arc(82, 78, 38, 0, Math.PI * 2);
+  x.stroke();
+  // Handle
+  x.beginPath();
+  x.moveTo(110, 106);
+  x.lineTo(138, 134);
+  x.stroke();
+  // S letter
+  x.fillStyle = '#ffffff';
+  x.font = '900 38px sans-serif';
+  x.textAlign = 'center';
+  x.textBaseline = 'middle';
+  x.fillText('S', 82, 79);
+  document.getElementById('appIcon').href = c.toDataURL('image/png');
+})();
+</script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
  @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap');
