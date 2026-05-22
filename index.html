@@ -2255,49 +2255,43 @@ function ttsToggle(source){
   utter.pitch  = 1.0;
   utter.volume = 1;
 
-  function startWithVoice(){
+  // Score and pick best voice — must happen synchronously (iOS blocks async speak)
+  function pickVoice(){
     const voices = window.speechSynthesis.getVoices();
-    if(!voices.length){ window.speechSynthesis.speak(utter); return; }
-
-    // Score each voice — higher = better
+    if(!voices.length) return; // use browser default — still works on iOS
     function scoreVoice(v){
       if(!/^en/i.test(v.lang)) return -1;
       let s = 0;
-      // Neural/premium quality (best sounding)
       if(/(premium|enhanced)/i.test(v.name)) s += 40;
-      // Specific known-good voices by name (macOS + iOS)
       if(/\b(Ava|Allison|Nicky|Samantha|Kate|Serena|Moira|Tessa)\b/i.test(v.name)) s += 20;
-      // Prefer en-GB for user (UK)
       if(/en.GB/i.test(v.lang)) s += 10;
-      // Avoid notoriously robotic voices
       if(/\b(Alex|Fred|Victoria|Agnes|Pipe|Whisper|Zarvox|Trinoids|Deranged|Bad|Bahh|Boing|Bubbles|Cellos|Wobble|Bells)\b/i.test(v.name)) s -= 50;
       return s;
     }
-
-    const scored = voices
-      .map(v => ({ v, s: scoreVoice(v) }))
-      .filter(x => x.s >= 0)
-      .sort((a,b) => b.s - a.s);
-
+    const scored = voices.map(v=>({v,s:scoreVoice(v)})).filter(x=>x.s>=0).sort((a,b)=>b.s-a.s);
     if(scored.length) utter.voice = scored[0].v;
-    else {
-      const fallback = voices.find(v=> /en/i.test(v.lang));
-      if(fallback) utter.voice = fallback;
-    }
-
-    ttsActive = source;
-    ttsSetBtn(source, true);
-
-    utter.onend = ()=>{ ttsSetBtn(source, false); ttsActive = null; };
-    utter.onerror = ()=>{ ttsSetBtn(source, false); ttsActive = null; };
-
-    window.speechSynthesis.speak(utter);
+    else { const f = voices.find(v=>/en/i.test(v.lang)); if(f) utter.voice = f; }
   }
 
-  // Voices may not be loaded yet on first call
-  const voices = window.speechSynthesis.getVoices();
-  if(voices.length){ startWithVoice(); }
-  else { window.speechSynthesis.onvoiceschanged = ()=>{ startWithVoice(); window.speechSynthesis.onvoiceschanged = null; }; }
+  pickVoice();
+
+  ttsActive = source;
+  ttsSetBtn(source, true);
+
+  utter.onend   = ()=>{ ttsSetBtn(source, false); ttsActive = null; };
+  utter.onerror = (e)=>{ ttsSetBtn(source, false); ttsActive = null; };
+
+  // iOS requires cancel() before speak(), and speak() must be in the same call stack as the tap
+  window.speechSynthesis.cancel();
+  window.speechSynthesis.speak(utter);
+
+  // iOS pauses long speech after ~15s — kick it back awake every 10s
+  const resumeTimer = setInterval(()=>{
+    if(!ttsActive){ clearInterval(resumeTimer); return; }
+    if(window.speechSynthesis.paused) window.speechSynthesis.resume();
+  }, 10000);
+  utter.onend = ()=>{ clearInterval(resumeTimer); ttsSetBtn(source, false); ttsActive = null; };
+  utter.onerror = ()=>{ clearInterval(resumeTimer); ttsSetBtn(source, false); ttsActive = null; };
 }
 
 // Stop TTS when switching tabs
