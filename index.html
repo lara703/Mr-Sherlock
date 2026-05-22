@@ -529,7 +529,7 @@
 
  /* Safe area for iPhone notch */
  @supports (padding: max(0px)) {
-   .wrap { padding-bottom: max(40px, env(safe-area-inset-bottom)); }
+   .wrap { padding-top: max(16px, env(safe-area-inset-top)); padding-bottom: max(40px, env(safe-area-inset-bottom)); }
    .toast { bottom: max(20px, env(safe-area-inset-bottom)); }
  }
 
@@ -1077,6 +1077,42 @@ function guessPri(text){
 
 let pendingThoughts=[];
 
+// ── Typo corrector ────────────────────────────────────
+const typoMap = {
+  'teh':'the','adn':'and','nad':'and','wiht':'with','thier':'their','freind':'friend',
+  'becuase':'because','becaus':'because','recieve':'receive','seperate':'separate',
+  'definately':'definitely','occured':'occurred','untill':'until','alot':'a lot',
+  'wich':'which','wanna':'want to','gonna':'going to','gotta':'got to',
+  'prolly':'probably','ur':'your','u':'you','r':'are','im':'i am','ive':'i have',
+  'dont':'do not','wont':'will not','cant':'cannot','didnt':'did not',
+  'shouldnt':'should not','couldnt':'could not','wouldnt':'would not',
+  'isnt':'is not','wasnt':'was not','werent':'were not','havent':'have not',
+  'hasnt':'has not','hadnt':'had not','doesnt':'does not','didnt':'did not',
+  'mum':'mum','dad':'dad','tomoro':'tomorrow','tommorow':'tomorrow','tomorow':'tomorrow',
+  'monday':'Monday','tuesday':'Tuesday','wednesday':'Wednesday','thursday':'Thursday',
+  'friday':'Friday','saturday':'Saturday','sunday':'Sunday',
+  'msg':'message','msgs':'messages','appt':'appointment','appts':'appointments',
+  'bday':'birthday','bf':'boyfriend','gf':'girlfriend','w/':'with',
+  'btw':'by the way','asap':'as soon as possible','tbh':'to be honest',
+  'ngl':'not going to lie','imo':'in my opinion','lol':'','lmao':'',
+  'omg':'','ngl':'','fr':'','rly':'really','srsly':'seriously',
+  'defo':'definitely','probs':'probably','obvs':'obviously','rn':'right now',
+  'tmrw':'tomorrow','tmr':'tomorrow','2mrw':'tomorrow','2day':'today',
+  'tonite':'tonight','tonght':'tonight','2nite':'tonight',
+  'cleen':'clean','clena':'clean','clena':'clean','bathrom':'bathroom',
+  'bathroon':'bathroom','exersise':'exercise','excersize':'exercise',
+  'excercise':'exercise','websit':'website','websote':'website',
+  'instgram':'instagram','instagarm':'instagram','intsagram':'instagram',
+  'buisness':'business','busines':'business','busniess':'business',
+};
+
+function correctTypos(text){
+  return text.split(/\b/).map(word=>{
+    const lower = word.toLowerCase();
+    return typoMap[lower] !== undefined ? typoMap[lower] : word;
+  }).join('').trim();
+}
+
 function splitIntoTasks(raw){
   // Step 1: split on hard delimiters and "also/well/then" connectors
   let chunks = raw
@@ -1107,13 +1143,10 @@ function organiseThoughts(){
   S.dump=raw; save();
   const chunks=splitIntoTasks(raw);
   if(!chunks.length){toast('Could not find any separate thoughts');return;}
-  pendingThoughts=chunks.map(text=>({
-    id:Date.now()+Math.random(),
-    text,
-    cat:guessCat(text),
-    pri:guessPri(text),
-    done:false
-  }));
+  pendingThoughts=chunks.map(text=>{
+    const clean = correctTypos(text);
+    return { id:Date.now()+Math.random(), text:clean, cat:guessCat(clean), pri:guessPri(clean), done:false };
+  });
   renderPendingPreview();
   const card=document.getElementById('thoughtPreviewCard');
   card.style.display='block';
