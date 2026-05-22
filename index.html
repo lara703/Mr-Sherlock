@@ -559,10 +559,62 @@
  .kt-del { background: none; border: none; color: rgba(255,255,255,0.15); cursor: pointer; font-size: 0.75rem; padding: 1px 3px; border-radius: 4px; flex-shrink: 0; transition: all 0.18s; line-height: 1; }
  .kt-del:hover { color: var(--red); }
 
+ /* ── Settings modal ── */
+ .settings-modal {
+   position: fixed; inset: 0; z-index: 200;
+   display: none; align-items: center; justify-content: center;
+   background: rgba(0,0,0,0.65);
+   padding: 20px;
+ }
+ .settings-modal.on { display: flex; }
+ .settings-box {
+   background: var(--card2);
+   border: 1.5px solid var(--border);
+   border-radius: 20px;
+   padding: 24px 22px;
+   width: 100%; max-width: 400px;
+   box-shadow: 0 20px 60px rgba(0,0,0,0.6);
+   display: flex; flex-direction: column; gap: 14px;
+ }
+ .settings-box h2 { font-size: 1rem; font-weight: 900; color: var(--text); }
+ .settings-box p { font-size: 0.8rem; color: var(--sub); font-weight: 600; line-height: 1.5; }
+ .key-status { font-size: 0.72rem; font-weight: 800; padding: 4px 10px; border-radius: 50px; display: inline-block; }
+ .key-status.active { background: rgba(39,174,96,0.18); color: #2ecc71; border: 1px solid rgba(39,174,96,0.3); }
+ .key-status.inactive { background: rgba(255,255,255,0.07); color: var(--sub); border: 1px solid rgba(255,255,255,0.1); }
+ .settings-gear {
+   background: rgba(255,255,255,0.07);
+   border: 1px solid rgba(255,255,255,0.1);
+   border-radius: 50%;
+   width: 32px; height: 32px;
+   display: flex; align-items: center; justify-content: center;
+   cursor: pointer; font-size: 0.9rem;
+   transition: all 0.18s;
+   flex-shrink: 0;
+ }
+ .settings-gear:hover { background: rgba(255,255,255,0.13); }
+
 </style>
 </head>
 <body>
 
+
+<!-- Settings modal -->
+<div class="settings-modal" id="settingsModal" onclick="if(event.target===this)closeSettings()">
+  <div class="settings-box">
+    <div style="display:flex;justify-content:space-between;align-items:center">
+      <h2>AI Settings</h2>
+      <span id="keyStatus" class="key-status inactive">No key set</span>
+    </div>
+    <p>Paste your Anthropic API key here. It saves to <b>this device only</b> — it never touches GitHub or any server.</p>
+    <input type="password" id="keyInput" placeholder="sk-ant-api03-..." autocomplete="off" style="font-family:monospace;font-size:0.8rem;letter-spacing:0.5px">
+    <div style="display:flex;gap:8px">
+      <button class="btn btn-p" style="flex:1" onclick="saveKey()">Save key</button>
+      <button class="btn btn-g" onclick="clearKey()">Remove key</button>
+      <button class="btn btn-g" onclick="closeSettings()">Close</button>
+    </div>
+    <p style="font-size:0.7rem;opacity:0.5">Get your key at console.anthropic.com → API Keys</p>
+  </div>
+</div>
 
 <canvas id="confetti"></canvas>
 <div class="overlay" id="overlay" onclick="closeReward()"></div>
@@ -585,6 +637,7 @@
  <div class="chip">⭐ <b id="sPoints">0</b> pts</div>
  <div class="chip"> <b id="sDone">0</b> today</div>
  <div class="chip" id="sLevel">Level 1</div>
+ <div class="settings-gear" onclick="openSettings()" title="AI settings">&#9881;</div>
  </div>
  </header>
 
@@ -748,8 +801,35 @@ const SUPABASE_URL  = 'https://aoohrpvwswpwnocrsxrw.supabase.co';
 const SUPABASE_KEY  = 'sb_publishable_WbrYdg9TqrBRDY7CowyKww_C8wQEWzp';
 const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-// ── Anthropic API key — paste yours here ──
-const ANTHROPIC_KEY = '';
+// ── Anthropic API key — stored in localStorage, never in code ──
+function getKey(){ return localStorage.getItem('anthropic_key') || ''; }
+function saveKey(){
+  const v = document.getElementById('keyInput').value.trim();
+  if(!v){ toast('Paste your key first'); return; }
+  localStorage.setItem('anthropic_key', v);
+  updateKeyStatus();
+  closeSettings();
+  toast('AI key saved — you are good to go');
+}
+function clearKey(){
+  localStorage.removeItem('anthropic_key');
+  document.getElementById('keyInput').value = '';
+  updateKeyStatus();
+  toast('Key removed');
+}
+function openSettings(){
+  const k = getKey();
+  document.getElementById('keyInput').value = k;
+  updateKeyStatus();
+  document.getElementById('settingsModal').classList.add('on');
+}
+function closeSettings(){ document.getElementById('settingsModal').classList.remove('on'); }
+function updateKeyStatus(){
+  const el = document.getElementById('keyStatus');
+  const has = !!getKey();
+  el.textContent = has ? 'AI active' : 'No key set';
+  el.className = 'key-status ' + (has ? 'active' : 'inactive');
+}
 
 let currentUser = null;
 
@@ -1186,7 +1266,7 @@ Respond with ONLY a valid JSON array, no explanation, no markdown. Example:
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      'x-api-key': ANTHROPIC_KEY,
+      'x-api-key': getKey(),
       'anthropic-version': '2023-06-01',
       'anthropic-dangerous-direct-browser-access': 'true'
     },
@@ -1212,7 +1292,7 @@ async function organiseThoughts(){
   if(!raw){toast('Nothing to organise yet');return;}
   S.dump=raw; save();
 
-  if(ANTHROPIC_KEY){
+  if(getKey()){
     // AI path
     const btn = document.querySelector('[onclick="organiseThoughts()"]');
     const orig = btn.textContent;
@@ -1652,6 +1732,7 @@ function startApp(){
  updateStats(); renderTimer();
  renderEnergyAdvice(parseInt(document.getElementById('energyR').value));
  document.getElementById('dumpTxt').value=S.dump||'';
+ updateKeyStatus();
 }
 </script>
 </body>
