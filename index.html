@@ -636,146 +636,135 @@
    display: flex; flex-direction: column; align-items: center; justify-content: center;
    gap: 0;
  }
- #loadScreen.out {
-   animation: loadSlideOut 0.55s cubic-bezier(0.76,0,0.24,1) forwards;
- }
+ #loadScreen.out { animation: loadSlideOut 0.6s cubic-bezier(0.76,0,0.24,1) forwards; }
  @keyframes loadSlideOut {
-   0%   { transform: translateY(0); opacity: 1; }
-   100% { transform: translateY(-100%); opacity: 1; }
+   0%   { transform: translateY(0); }
+   100% { transform: translateY(-100%); }
  }
 
- /* Glow background pulse */
+ /* Background radial glow — pulses gently */
  #loadBg {
    position: absolute; inset: 0;
-   background: radial-gradient(ellipse at center, rgba(192,57,43,0.18) 0%, transparent 65%);
+   background: radial-gradient(ellipse at center, rgba(192,57,43,0.22) 0%, transparent 60%);
    opacity: 0;
-   animation: loadBgIn 0.8s ease 0.3s forwards;
+   animation: loadBgIn 1s ease 0.2s forwards;
  }
  @keyframes loadBgIn { to { opacity: 1; } }
 
+ /* Second wider glow that pulses */
+ #loadBg2 {
+   position: absolute; inset: 0;
+   background: radial-gradient(ellipse at center, rgba(231,76,60,0.1) 0%, transparent 75%);
+   opacity: 0;
+   animation: loadBgIn 1s ease 0.5s forwards, loadBgPulse 2s ease-in-out 2s infinite;
+ }
+ @keyframes loadBgPulse { 0%,100%{opacity:0.4} 50%{opacity:1} }
+
  /* Icon wrapper */
  #loadIconWrap {
-   position: relative; width: 150px; height: 150px;
+   position: relative; width: 160px; height: 160px;
    display: flex; align-items: center; justify-content: center;
  }
 
- /* SVG ring draw */
+ /* SVG rings */
  #loadRingSvg { position: absolute; inset: 0; }
- .load-ring-track {
-   fill: none; stroke: rgba(192,57,43,0.15); stroke-width: 3;
- }
+ .load-ring-track  { fill:none; stroke:rgba(192,57,43,0.12); stroke-width:3; }
+ .load-ring-track2 { fill:none; stroke:rgba(192,57,43,0.08); stroke-width:1.5; }
  .load-ring-fill {
-   fill: none; stroke: url(#ringGrad); stroke-width: 3;
-   stroke-linecap: round;
-   stroke-dasharray: 440;
-   stroke-dashoffset: 440;
-   animation: drawRing 0.9s cubic-bezier(0.22,1,0.36,1) 0.15s forwards;
-   filter: drop-shadow(0 0 8px rgba(231,76,60,0.8));
+   fill:none; stroke:url(#ringGrad); stroke-width:3.5; stroke-linecap:round;
+   stroke-dasharray:471; stroke-dashoffset:471;
+   animation: drawRing 1.1s cubic-bezier(0.22,1,0.36,1) 0.15s forwards;
+   filter: drop-shadow(0 0 12px rgba(231,76,60,0.9));
  }
+ .load-ring-fill2 {
+   fill:none; stroke:rgba(231,76,60,0.35); stroke-width:1.5; stroke-linecap:round;
+   stroke-dasharray:327; stroke-dashoffset:327;
+   animation: drawRing2 0.65s cubic-bezier(0.22,1,0.36,1) 1.0s forwards;
+ }
+ @keyframes drawRing2 { to { stroke-dashoffset: 0; } }
  @keyframes drawRing { to { stroke-dashoffset: 0; } }
+
+ /* Icon complete glow pulse */
+ #loadIconWrap.complete { animation: iconComplete 0.7s cubic-bezier(0.34,1.56,0.64,1) forwards; }
+ @keyframes iconComplete {
+   0%   { transform:scale(1); filter:drop-shadow(0 0 0 transparent); }
+   40%  { transform:scale(1.12); filter:drop-shadow(0 0 30px rgba(231,76,60,0.9)); }
+   70%  { transform:scale(0.96); }
+   100% { transform:scale(1); filter:drop-shadow(0 0 15px rgba(231,76,60,0.5)); }
+ }
 
  /* Exclamation bar */
  #loadExclBar {
-   position: absolute;
-   width: 22px; height: 68px;
-   background: linear-gradient(180deg, #ff6b6b, #c0392b);
-   border-radius: 11px;
-   top: 26px;
-   box-shadow: 0 0 20px rgba(231,76,60,0.6);
-   transform-origin: top center;
-   transform: scaleY(0) translateY(-10px);
-   opacity: 0;
-   animation: barDrop 0.5s cubic-bezier(0.34,1.56,0.64,1) 1.0s forwards;
+   position:absolute; width:24px; height:72px;
+   background:linear-gradient(180deg,#ff6b6b,#c0392b);
+   border-radius:12px; top:24px;
+   box-shadow:0 0 24px rgba(231,76,60,0.7);
+   transform-origin:top center; transform:scaleY(0); opacity:0;
+   animation: barDrop 0.55s cubic-bezier(0.34,1.56,0.64,1) 1.1s forwards;
  }
  @keyframes barDrop {
-   0%   { opacity:0; transform: scaleY(0) translateY(-10px); }
-   60%  { opacity:1; transform: scaleY(1.08) translateY(2px); }
-   100% { opacity:1; transform: scaleY(1) translateY(0); }
+   0%   { opacity:0; transform:scaleY(0) translateY(-8px); }
+   55%  { opacity:1; transform:scaleY(1.1) translateY(3px); }
+   100% { opacity:1; transform:scaleY(1) translateY(0); }
  }
 
  /* Exclamation dot */
  #loadExclDot {
-   position: absolute;
-   width: 22px; height: 22px;
-   background: linear-gradient(135deg, #ff6b6b, #c0392b);
-   border-radius: 50%;
-   bottom: 22px;
-   box-shadow: 0 0 18px rgba(231,76,60,0.7);
-   transform: scale(0);
-   opacity: 0;
-   animation: dotBounce 0.45s cubic-bezier(0.34,1.56,0.64,1) 1.45s forwards;
+   position:absolute; width:24px; height:24px;
+   background:linear-gradient(135deg,#ff6b6b,#c0392b);
+   border-radius:50%; bottom:20px;
+   box-shadow:0 0 20px rgba(231,76,60,0.8);
+   transform:scale(0); opacity:0;
+   animation: dotBounce 0.5s cubic-bezier(0.34,1.56,0.64,1) 1.6s forwards;
  }
  @keyframes dotBounce {
-   0%   { opacity:0; transform: scale(0) translateY(12px); }
-   65%  { opacity:1; transform: scale(1.2) translateY(-3px); }
-   100% { opacity:1; transform: scale(1) translateY(0); }
+   0%   { opacity:0; transform:scale(0) translateY(14px); }
+   60%  { opacity:1; transform:scale(1.25) translateY(-4px); }
+   100% { opacity:1; transform:scale(1) translateY(0); }
  }
 
- /* Burst rings */
- #loadBurst {
-   position: absolute; inset: 0;
-   border-radius: 50%;
-   border: 2px solid rgba(231,76,60,0.6);
-   opacity: 0;
-   transform: scale(1);
-   animation: burst 0.6s ease-out 1.85s forwards;
+ /* Burst rings — 3 of them */
+ .load-burst {
+   position:absolute; inset:0; border-radius:50%; opacity:0; transform:scale(1);
  }
- #loadBurst2 {
-   position: absolute; inset: 0;
-   border-radius: 50%;
-   border: 1.5px solid rgba(231,76,60,0.3);
-   opacity: 0;
-   transform: scale(1);
-   animation: burst 0.7s ease-out 1.95s forwards;
- }
- @keyframes burst {
-   0%   { opacity: 0.8; transform: scale(1); }
-   100% { opacity: 0; transform: scale(1.55); }
- }
+ #loadBurst  { border:2.5px solid rgba(231,76,60,0.7); animation:burst 0.65s ease-out 2.05s forwards; }
+ #loadBurst2 { border:1.5px solid rgba(231,76,60,0.4); animation:burst 0.75s ease-out 2.18s forwards; }
+ #loadBurst3 { border:1px   solid rgba(231,76,60,0.2); animation:burst 0.85s ease-out 2.30s forwards; }
+ @keyframes burst { 0%{opacity:0.9;transform:scale(1)} 100%{opacity:0;transform:scale(1.75)} }
 
- /* Title */
+ /* Title — letter by letter */
  #loadTitle {
-   font-family: 'Nunito', sans-serif;
-   font-size: 2.4rem; font-weight: 900;
-   background: linear-gradient(90deg, #c0392b 0%, #ff8a80 40%, #e74c3c 60%, #ff6b6b 80%, #c0392b 100%);
-   background-size: 250% auto;
-   -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
-   opacity: 0; transform: translateY(16px);
-   animation: titleReveal 0.6s cubic-bezier(0.22,1,0.36,1) 2.0s forwards,
-              loadShimmer 2s linear 2.5s infinite;
-   margin-top: 28px; letter-spacing: -0.5px;
+   font-family:'Nunito',sans-serif; font-size:2.6rem; font-weight:900;
+   letter-spacing:-0.5px; margin-top:32px;
+   display:flex; gap:0;
  }
- @keyframes titleReveal { to { opacity:1; transform:translateY(0); } }
- @keyframes loadShimmer { 0% { background-position:250% center; } 100% { background-position:-250% center; } }
-
- /* Subtitle */
- #loadSub {
-   font-family: 'Nunito', sans-serif;
-   font-size: 0.78rem; font-weight: 800;
-   color: var(--sub); letter-spacing: 3px; text-transform: uppercase;
-   opacity: 0;
-   animation: subFade 0.5s ease 2.45s forwards;
-   margin-top: 6px;
+ #loadTitle .lc {
+   display:inline-block;
+   background:linear-gradient(90deg,#c0392b 0%,#ff8a80 40%,#e74c3c 70%,#c0392b 100%);
+   background-size:300% auto;
+   -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;
+   opacity:0; transform:translateY(18px) scale(0.85);
+   animation: letterIn 0.45s cubic-bezier(0.34,1.56,0.64,1) both,
+              loadShimmer 3s linear 3.0s infinite;
  }
- @keyframes subFade { to { opacity: 1; } }
+ @keyframes letterIn { to { opacity:1; transform:translateY(0) scale(1); } }
+ @keyframes loadShimmer { 0%{background-position:300% center} 100%{background-position:-300% center} }
+ /* Letter space */
+ #loadTitle .lc.sp { -webkit-text-fill-color:transparent; min-width:0.5rem; }
 
- /* Bottom progress bar */
+ /* Bottom progress bar — fills over 3.7s */
  #loadBar {
-   position: absolute; bottom: 0; left: 0;
-   height: 3px;
-   background: linear-gradient(90deg, var(--a), var(--c), var(--d));
-   width: 0%;
-   box-shadow: 0 0 12px rgba(231,76,60,0.7);
-   animation: loadProgress 2.7s cubic-bezier(0.4,0,0.2,1) 0.2s forwards;
-   border-radius: 0 2px 2px 0;
+   position:absolute; bottom:0; left:0; height:3px;
+   background:linear-gradient(90deg,#c0392b,#ff6b6b,#ff4444);
+   width:0%;
+   box-shadow:0 0 14px rgba(231,76,60,0.8);
+   animation:loadProgress 3.7s cubic-bezier(0.35,0,0.15,1) 0.1s forwards;
+   border-radius:0 2px 2px 0;
  }
- @keyframes loadProgress { to { width: 100%; } }
+ @keyframes loadProgress { to { width:100%; } }
 
  /* Particles */
- .load-particle {
-   position: absolute; width: 4px; height: 4px; border-radius: 50%;
-   background: #e74c3c; opacity: 0;
- }
+ .load-particle { position:absolute; border-radius:50%; opacity:0; }
 
  /* ── Keyframes ── */
  @keyframes slideInUp    { from { opacity:0; transform:translateY(22px); } to { opacity:1; transform:translateY(0); } }
@@ -975,15 +964,17 @@
 <!-- ══ LOADING SCREEN ══ -->
 <div id="loadScreen">
   <div id="loadBg"></div>
+  <div id="loadBg2"></div>
   <div id="loadBar"></div>
 
   <div id="loadIconWrap">
     <!-- Burst rings -->
-    <div id="loadBurst"></div>
-    <div id="loadBurst2"></div>
+    <div id="loadBurst"  class="load-burst"></div>
+    <div id="loadBurst2" class="load-burst"></div>
+    <div id="loadBurst3" class="load-burst"></div>
 
     <!-- Ring SVG -->
-    <svg id="loadRingSvg" viewBox="0 0 150 150" xmlns="http://www.w3.org/2000/svg">
+    <svg id="loadRingSvg" viewBox="0 0 160 160" xmlns="http://www.w3.org/2000/svg">
       <defs>
         <linearGradient id="ringGrad" x1="0%" y1="0%" x2="100%" y2="100%">
           <stop offset="0%" stop-color="#c0392b"/>
@@ -991,8 +982,12 @@
           <stop offset="100%" stop-color="#e74c3c"/>
         </linearGradient>
       </defs>
-      <circle class="load-ring-track" cx="75" cy="75" r="70"/>
-      <circle class="load-ring-fill"  cx="75" cy="75" r="70" transform="rotate(-90 75 75)"/>
+      <!-- Outer ring -->
+      <circle class="load-ring-track"  cx="80" cy="80" r="75"/>
+      <circle class="load-ring-fill"   cx="80" cy="80" r="75" transform="rotate(-90 80 80)"/>
+      <!-- Inner ring -->
+      <circle class="load-ring-track2" cx="80" cy="80" r="52"/>
+      <circle class="load-ring-fill2"  cx="80" cy="80" r="52" transform="rotate(-90 80 80)"/>
     </svg>
 
     <!-- Exclamation mark -->
@@ -1000,8 +995,7 @@
     <div id="loadExclDot"></div>
   </div>
 
-  <div id="loadTitle">Mr. Sherlock</div>
-  <div id="loadSub">your ADHD sidekick</div>
+  <div id="loadTitle"><span class="lc" style="animation-delay:2.2s">M</span><span class="lc" style="animation-delay:2.29s">r</span><span class="lc sp" style="animation-delay:2.36s"> </span><span class="lc" style="animation-delay:2.43s">S</span><span class="lc" style="animation-delay:2.51s">h</span><span class="lc" style="animation-delay:2.58s">e</span><span class="lc" style="animation-delay:2.65s">r</span><span class="lc" style="animation-delay:2.72s">l</span><span class="lc" style="animation-delay:2.79s">o</span><span class="lc" style="animation-delay:2.86s">c</span><span class="lc" style="animation-delay:2.93s">k</span></div>
 </div>
 
 <!-- Settings modal -->
@@ -1270,37 +1264,44 @@
 <script>
 // ── Loading screen ────────────────────────────────────
 (function(){
-  // Particles burst at 1.85s
+  // Icon complete glow at ~2.0s (after dot bounce finishes)
+  setTimeout(()=>{
+    const wrap = document.getElementById('loadIconWrap');
+    if(wrap) wrap.classList.add('complete');
+  }, 2000);
+
+  // Particles burst at 2.05s
   setTimeout(()=>{
     const wrap = document.getElementById('loadIconWrap');
     if(!wrap) return;
-    const angles = [0,45,90,135,180,225,270,315];
+    const angles = [0,30,60,90,120,150,180,210,240,270,300,330];
     angles.forEach(angle=>{
       const p = document.createElement('div');
       p.className = 'load-particle';
       const rad = angle * Math.PI / 180;
-      const dist = 70 + Math.random()*20;
+      const dist = 72 + Math.random()*28;
+      const size = 4 + Math.random()*5;
       const tx = Math.cos(rad)*dist, ty = Math.sin(rad)*dist;
-      p.style.cssText = `left:50%;top:50%;transform:translate(-50%,-50%);`;
+      p.style.cssText = `left:50%;top:50%;transform:translate(-50%,-50%);width:${size}px;height:${size}px;background:hsl(${5+Math.random()*15},90%,${55+Math.random()*20}%);`;
       wrap.appendChild(p);
       p.animate([
-        { opacity:1, transform:`translate(calc(-50%),calc(-50%))`, offset:0 },
-        { opacity:0.8, transform:`translate(calc(-50% + ${tx}px),calc(-50% + ${ty}px)) scale(1.4)`, offset:0.5 },
-        { opacity:0, transform:`translate(calc(-50% + ${tx*1.5}px),calc(-50% + ${ty*1.5}px)) scale(0)`, offset:1 }
-      ], { duration: 600, easing:'ease-out', fill:'forwards' });
-      setTimeout(()=>p.remove(), 700);
+        { opacity:1, transform:`translate(calc(-50%),calc(-50%)) scale(1)`, offset:0 },
+        { opacity:0.9, transform:`translate(calc(-50% + ${tx}px),calc(-50% + ${ty}px)) scale(1.5)`, offset:0.4 },
+        { opacity:0, transform:`translate(calc(-50% + ${tx*1.6}px),calc(-50% + ${ty*1.6}px)) scale(0)`, offset:1 }
+      ], { duration: 700, easing:'ease-out', fill:'forwards' });
+      setTimeout(()=>p.remove(), 800);
     });
-  }, 1850);
+  }, 2050);
 
-  // Slide out at 3s, remove at 3.6s
+  // Slide out at 4s, remove at 4.6s
   setTimeout(()=>{
     const el = document.getElementById('loadScreen');
     if(el) el.classList.add('out');
-  }, 3000);
+  }, 4000);
   setTimeout(()=>{
     const el = document.getElementById('loadScreen');
     if(el) el.remove();
-  }, 3600);
+  }, 4600);
 })();
 
 // ── Supabase config ──
