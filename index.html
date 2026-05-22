@@ -2191,14 +2191,29 @@ let ttsActive = null; // which source is currently speaking: 'mood' | 'advice' |
 function ttsGetText(source){
   if(source === 'mood'){
     const el = document.getElementById('moodAiBody');
-    return el ? el.innerText.trim() : '';
+    // Use textContent to avoid CSS text-transform weirdness
+    return el ? el.textContent.trim() : '';
   }
   if(source === 'advice'){
-    const title = document.getElementById('energyAdviceTitle');
-    const body  = document.getElementById('energyAdviceBody');
-    const t = title ? title.textContent.trim() : '';
-    const b = body  ? body.innerText.trim() : '';
-    return t + (b ? '. ' + b : '');
+    // Skip the title entirely — just read the body content
+    const body = document.getElementById('energyAdviceBody');
+    if(!body) return '';
+    const parts = [];
+    // Intro paragraph
+    const intro = body.querySelector('p');
+    if(intro) parts.push(intro.textContent.trim());
+    // Each section: heading (normal case via textContent) + body text
+    body.querySelectorAll(':scope > div').forEach(section => {
+      const kids = [...section.children];
+      if(kids.length >= 2){
+        const heading = kids[0].textContent.trim();   // normal case, no CSS transform
+        const bodyTxt = kids[1].textContent.trim();
+        if(bodyTxt) parts.push(heading + '. ' + bodyTxt);
+      } else if(section.textContent.trim()){
+        parts.push(section.textContent.trim());
+      }
+    });
+    return parts.filter(Boolean).join('  ');
   }
   return '';
 }
@@ -2235,18 +2250,23 @@ function ttsToggle(source){
   if(!window.speechSynthesis){ toast('Text-to-speech not supported on this browser'); return; }
 
   const utter = new SpeechSynthesisUtterance(text);
-  utter.rate  = 0.95;
-  utter.pitch = 1.05;
+  utter.rate   = 0.88;   // slightly slower = more natural, less robotic
+  utter.pitch  = 1.0;    // neutral pitch sounds most human
   utter.volume = 1;
 
-  // Try to pick a natural English voice — prefer UK female
+  // Pick the most natural-sounding English voice available
+  // Enhanced/Premium voices (iOS/macOS neural voices) sound dramatically better
   function startWithVoice(){
     const voices = window.speechSynthesis.getVoices();
     if(voices.length){
-      // Priority: UK female > US female > any English > default
-      const pick = voices.find(v=> /en.GB/i.test(v.lang) && /female|samantha|kate|serena|moira/i.test(v.name))
+      // 1. UK English Enhanced/Premium (best — neural quality)
+      // 2. Any English Enhanced/Premium
+      // 3. UK English standard
+      // 4. Any English
+      const pick =
+        voices.find(v=> /en.GB/i.test(v.lang) && /(enhanced|premium)/i.test(v.name))
+        || voices.find(v=> /en/i.test(v.lang) && /(enhanced|premium)/i.test(v.name))
         || voices.find(v=> /en.GB/i.test(v.lang))
-        || voices.find(v=> /en/i.test(v.lang) && /female|samantha|karen|moira/i.test(v.name))
         || voices.find(v=> /en/i.test(v.lang))
         || null;
       if(pick) utter.voice = pick;
