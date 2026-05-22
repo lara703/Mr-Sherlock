@@ -1541,7 +1541,8 @@ function updateKeyStatus(){
   el.className = 'key-status ' + (has ? 'active' : 'inactive');
 }
 
-let currentUser = null;
+// Fixed user ID — all your devices share this slot in Supabase automatically
+const currentUser = { id: 'mrsherlockapp-lara' };
 
 // ── State ──────────────────────────────────────────────
 let S = {
@@ -1560,20 +1561,32 @@ function save(){
 }
 
 async function pushToCloud(){
-  await sb.from('user_data').upsert({
-    user_id: currentUser.id,
-    data: S,
-    updated_at: new Date().toISOString()
-  }, { onConflict: 'user_id' });
+  try {
+    await sb.from('user_data').upsert({
+      user_id: currentUser.id,
+      data: S,
+      updated_at: new Date().toISOString()
+    }, { onConflict: 'user_id' });
+  } catch(e){ /* silent — local save already done */ }
 }
 
 async function pullFromCloud(){
-  const { data } = await sb.from('user_data')
-    .select('data')
-    .eq('user_id', currentUser.id)
-    .single();
-  if(data?.data) S = { ...S, ...data.data };
+  try {
+    const { data } = await sb.from('user_data')
+      .select('data')
+      .eq('user_id', currentUser.id)
+      .single();
+    if(data?.data){
+      S = { ...S, ...data.data };
+      localStorage.setItem('fhq', JSON.stringify(S));
+    }
+  } catch(e){ /* silent — use local data */ }
 }
+
+// Re-sync whenever you switch back to the app (e.g. iPhone → Mac)
+document.addEventListener('visibilitychange', ()=>{
+  if(!document.hidden) pullFromCloud().then(()=>{ renderTasks(); renderGoals(); renderIdeas(); renderWins(); updateStats(); });
+});
 
 function checkNewDay(){
   const today = new Date().toDateString();
