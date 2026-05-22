@@ -840,7 +840,7 @@ function nextTip(){ tipI = (tipI+1)%tips.length; document.getElementById('tipTxt
 function addTask(){
   const v = document.getElementById('tIn').value.trim();
   if(!v){ flash('tIn'); return; }
-  S.tasks.unshift({ id:Date.now(), text:v, cat:document.getElementById('tCat').value, pri:'normal', done:false });
+  S.tasks.unshift({ id:Date.now(), text:v, cat:'personal', pri:'normal', done:false });
   document.getElementById('tIn').value = '';
   save(); renderTasks(); toast('Task added');
   document.getElementById('col-normal').scrollIntoView({behavior:'smooth', block:'nearest'});
@@ -922,21 +922,29 @@ function onDrop(e, pri){
 // ── Touch drag and drop (iPhone) ──
 let touchDragId = null;
 let touchGhost = null;
+let touchTimer = null;
+let touchDragging = false;
 
 function addTouchDrag(el, id){
   el.addEventListener('touchstart', e=>{
-    touchDragId = id;
+    // Don't drag if tapping delete or check buttons
+    if(e.target.closest('.kt-del') || e.target.closest('.kt-check')) return;
     const t = e.touches[0];
-    touchGhost = el.cloneNode(true);
-    const rect = el.getBoundingClientRect();
-    touchGhost.style.cssText = `position:fixed;top:${rect.top}px;left:${rect.left}px;width:${rect.width}px;opacity:0.85;pointer-events:none;z-index:9999;transform:rotate(2deg) scale(1.04);transition:none;border:2px solid var(--b);`;
-    document.body.appendChild(touchGhost);
-    el.style.opacity = '0.3';
-    e.preventDefault();
-  }, {passive:false});
+    // Wait 220ms — if still held, start drag. If released sooner, it's a tap.
+    touchTimer = setTimeout(()=>{
+      touchDragging = true;
+      touchDragId = id;
+      const rect = el.getBoundingClientRect();
+      touchGhost = el.cloneNode(true);
+      touchGhost.style.cssText = `position:fixed;top:${rect.top}px;left:${rect.left}px;width:${rect.width}px;opacity:0.85;pointer-events:none;z-index:9999;transform:rotate(2deg) scale(1.04);transition:none;border:2px solid var(--b);`;
+      document.body.appendChild(touchGhost);
+      el.style.opacity = '0.3';
+    }, 220);
+  }, {passive:true});
 
   el.addEventListener('touchmove', e=>{
-    if(!touchGhost) return;
+    if(!touchDragging || !touchGhost) { clearTimeout(touchTimer); return; }
+    e.preventDefault();
     const t = e.touches[0];
     const rect = el.getBoundingClientRect();
     touchGhost.style.top  = (t.clientY - rect.height/2) + 'px';
@@ -947,15 +955,14 @@ function addTouchDrag(el, id){
     document.querySelectorAll('.kanban-drop').forEach(c=>c.classList.remove('drag-over'));
     const col = under?.closest('.kanban-drop');
     if(col) col.classList.add('drag-over');
-    e.preventDefault();
   }, {passive:false});
 
   el.addEventListener('touchend', e=>{
-    if(!touchGhost || touchDragId===null) return;
+    clearTimeout(touchTimer);
+    if(!touchDragging || !touchGhost){ touchDragging=false; touchDragId=null; return; }
     const t = e.changedTouches[0];
     touchGhost.style.display = 'none';
     const under = document.elementFromPoint(t.clientX, t.clientY);
-    touchGhost.style.display = '';
     const col = under?.closest('.kanban-drop');
     if(col){
       const pri = col.id.replace('col-','');
@@ -965,14 +972,14 @@ function addTouchDrag(el, id){
     touchGhost.remove(); touchGhost=null;
     el.style.opacity='';
     document.querySelectorAll('.kanban-drop').forEach(c=>c.classList.remove('drag-over'));
-    touchDragId=null;
+    touchDragId=null; touchDragging=false;
   });
 }
 
 function bindTouchDrag(){
   document.querySelectorAll('.kanban-task').forEach(el=>{
-    const id = parseInt(el.id.replace('kt',''));
-    if(!isNaN(id)) addTouchDrag(el, id);
+    const id = Number(el.id.replace('kt',''));
+    if(id) addTouchDrag(el, id);
   });
 }
 
@@ -1124,9 +1131,10 @@ function organiseThoughts(){
   S.dump=raw; save();
   const chunks=splitIntoTasks(raw);
   if(!chunks.length){toast('Could not find any separate thoughts');return;}
+  let uid = Date.now();
   pendingThoughts=chunks.map(text=>{
     const clean = correctTypos(text);
-    return { id:Date.now()+Math.random(), text:clean, cat:guessCat(clean), pri:guessPri(clean), done:false };
+    return { id:uid++, text:clean, cat:guessCat(clean), pri:guessPri(clean), done:false };
   });
   renderPendingPreview();
   const card=document.getElementById('thoughtPreviewCard');
@@ -1163,7 +1171,8 @@ function removePending(i){
 function confirmThoughts(){
   if(!pendingThoughts.length) return;
   const count=pendingThoughts.length;
-  pendingThoughts.forEach(t=>S.tasks.unshift({...t,id:Date.now()+Math.random()}));
+  let tid = Date.now();
+  pendingThoughts.forEach(t=>S.tasks.unshift({...t,id:tid++}));
   save(); renderTasks();
   S.dump=''; document.getElementById('dumpTxt').value='';
   pendingThoughts=[]; hidePreviews();
