@@ -902,6 +902,7 @@ function renderTasks(){
   const pct = total ? Math.round(done/total*100) : 0;
   document.getElementById('progFill').style.width = pct+'%';
   document.getElementById('progLbl').textContent = `${done} / ${total} done`;
+  bindTouchDrag();
 }
 
 function toggleTask(id){
@@ -915,7 +916,7 @@ function toggleTask(id){
 function delTask(id){ S.tasks=S.tasks.filter(t=>t.id!==id); save(); renderTasks(); }
 function clearDone(){ S.tasks=S.tasks.filter(t=>!t.done); save(); renderTasks(); toast('Cleared'); }
 
-// ── Drag and drop ──
+// ── Drag and drop (mouse) ──
 let dragId = null;
 
 function onDragStart(e, id){
@@ -946,6 +947,63 @@ function onDrop(e, pri){
   const t = S.tasks.find(t=>t.id===dragId);
   if(t && t.pri !== pri){ t.pri = pri; save(); renderTasks(); toast('Moved to '+pri); }
   dragId = null;
+}
+
+// ── Touch drag and drop (iPhone) ──
+let touchDragId = null;
+let touchGhost = null;
+
+function addTouchDrag(el, id){
+  el.addEventListener('touchstart', e=>{
+    touchDragId = id;
+    const t = e.touches[0];
+    touchGhost = el.cloneNode(true);
+    const rect = el.getBoundingClientRect();
+    touchGhost.style.cssText = `position:fixed;top:${rect.top}px;left:${rect.left}px;width:${rect.width}px;opacity:0.85;pointer-events:none;z-index:9999;transform:rotate(2deg) scale(1.04);transition:none;border:2px solid var(--b);`;
+    document.body.appendChild(touchGhost);
+    el.style.opacity = '0.3';
+    e.preventDefault();
+  }, {passive:false});
+
+  el.addEventListener('touchmove', e=>{
+    if(!touchGhost) return;
+    const t = e.touches[0];
+    const rect = el.getBoundingClientRect();
+    touchGhost.style.top  = (t.clientY - rect.height/2) + 'px';
+    touchGhost.style.left = (t.clientX - rect.width/2)  + 'px';
+    touchGhost.style.display = 'none';
+    const under = document.elementFromPoint(t.clientX, t.clientY);
+    touchGhost.style.display = '';
+    document.querySelectorAll('.kanban-drop').forEach(c=>c.classList.remove('drag-over'));
+    const col = under?.closest('.kanban-drop');
+    if(col) col.classList.add('drag-over');
+    e.preventDefault();
+  }, {passive:false});
+
+  el.addEventListener('touchend', e=>{
+    if(!touchGhost || touchDragId===null) return;
+    const t = e.changedTouches[0];
+    touchGhost.style.display = 'none';
+    const under = document.elementFromPoint(t.clientX, t.clientY);
+    touchGhost.style.display = '';
+    const col = under?.closest('.kanban-drop');
+    if(col){
+      const pri = col.id.replace('col-','');
+      const task = S.tasks.find(tk=>tk.id===touchDragId);
+      if(task && task.pri!==pri){ task.pri=pri; save(); renderTasks(); toast('Moved to '+pri); }
+    }
+    touchGhost.remove(); touchGhost=null;
+    el.style.opacity='';
+    document.querySelectorAll('.kanban-drop').forEach(c=>c.classList.remove('drag-over'));
+    touchDragId=null;
+  });
+}
+
+function bindTouchDrag(){
+  document.querySelectorAll('.kanban-task').forEach(el=>{
+    const id = parseInt(el.id.replace('kt',''));
+    if(!isNaN(id)) addTouchDrag(el, id);
+  });
 }
 
 // ── Goals & Ideas ──────────────────────────────────────
@@ -1019,14 +1077,35 @@ function guessPri(text){
 
 let pendingThoughts=[];
 
+function splitIntoTasks(raw){
+  // Step 1: split on hard delimiters and "also/well/then" connectors
+  let chunks = raw
+    .split(/\n|,(?![^\(]*\))|;|\bwell\s+also\b|\band\s+also\b|\balso\b|\bthen\b/)
+    .map(s=>s.replace(/^[\s\-\*•]+|[\s\.]+$/g,'').trim())
+    .filter(s=>s.length>2);
+
+  // Step 2: strip leading filler like "I need to", "i want to" etc
+  chunks = chunks.map(s=>s.replace(/^i\s+(need|want|have|got|should|must|am going)\s+to\s+/i,'').trim());
+
+  // Step 3: further split run-together action verbs within each chunk
+  const verbs = 'clean|tidy|wash|hoover|vacuum|eat|make|cook|prep|go|get|buy|pick up|call|text|ring|message|reply|email|send|post|write|finish|start|fix|sort|check|pay|book|order|research|design|update|upload|record|film|edit|draw|plan|prepare|pack|clear|print|submit|apply|contact|shower|bath|run|walk|exercise|gym|study|read|do|work on';
+  const verbRe = new RegExp(`\\s+(?=(${verbs})\\s)`, 'gi');
+
+  chunks = chunks.flatMap(chunk=>{
+    const parts = chunk.split(verbRe).map(s=>s.trim()).filter(s=>s.length>2);
+    // split() with a capturing group adds captures as alternating elements — filter those out
+    return parts.filter((_,i)=>i%2===0);
+  });
+
+  // Step 4: clean up any leftover leading "and "
+  return chunks.map(s=>s.replace(/^(and|or)\s+/i,'').trim()).filter(s=>s.length>2);
+}
+
 function organiseThoughts(){
   const raw=document.getElementById('dumpTxt').value.trim();
   if(!raw){toast('Nothing to organise yet');return;}
   S.dump=raw; save();
-  const chunks=raw
-    .split(/\n|,(?![^\(]*\))/)
-    .map(s=>s.replace(/^[\s\-\*•]+|[\s\.]+$/g,'').trim())
-    .filter(s=>s.length>2);
+  const chunks=splitIntoTasks(raw);
   if(!chunks.length){toast('Could not find any separate thoughts');return;}
   pendingThoughts=chunks.map(text=>({
     id:Date.now()+Math.random(),
@@ -1074,8 +1153,7 @@ function confirmThoughts(){
   save(); renderTasks();
   S.dump=''; document.getElementById('dumpTxt').value='';
   pendingThoughts=[]; hidePreviews();
-  toast(count+' thoughts added to tasks');
-  goByName('tasks');
+  toast(count+' thoughts added to PLAN A');
 }
 
 function cancelThoughts(){pendingThoughts=[];hidePreviews();}
