@@ -531,21 +531,6 @@
 </head>
 <body>
 
-<!-- ── Auth screen ── -->
-<div id="authScreen" style="
-  position:fixed;inset:0;background:var(--bg);z-index:9999;
-  display:flex;align-items:center;justify-content:center;padding:24px;
-">
-  <div style="width:100%;max-width:360px;text-align:center">
-    <div style="font-size:2rem;font-weight:900;background:linear-gradient(135deg,#e74c3c,#c0392b);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:6px">Mr. Sherlock</div>
-    <div style="font-size:0.78rem;color:var(--sub);font-weight:700;letter-spacing:2px;text-transform:uppercase;margin-bottom:32px">Sign in to sync across devices</div>
-    <div id="authForm">
-      <input type="email" id="authEmail" placeholder="your@email.com" style="margin-bottom:10px;text-align:center">
-      <button class="btn btn-p" style="width:100%;padding:12px" onclick="signIn()">Send magic link</button>
-      <div id="authMsg" style="margin-top:14px;font-size:0.82rem;color:var(--sub);font-weight:600;line-height:1.5"></div>
-    </div>
-  </div>
-</div>
 
 <canvas id="confetti"></canvas>
 <div class="overlay" id="overlay" onclick="closeReward()"></div>
@@ -568,7 +553,6 @@
  <div class="chip">⭐ <b id="sPoints">0</b> pts</div>
  <div class="chip"> <b id="sDone">0</b> today</div>
  <div class="chip" id="sLevel">Level 1</div>
- <button class="btn btn-g btn-sm" onclick="signOut()" style="font-size:0.7rem;padding:5px 10px">Sign out</button>
  </div>
  </header>
 
@@ -814,54 +798,10 @@ async function load(){
   checkNewDay();
 }
 
-// ── Auth ───────────────────────────────────────────────
-async function signIn(){
-  const email = document.getElementById('authEmail').value.trim();
-  if(!email){ document.getElementById('authMsg').textContent = 'Enter your email first.'; return; }
-  document.getElementById('authMsg').textContent = 'Sending link...';
-  const { error } = await sb.auth.signInWithOtp({
-    email,
-    options: { emailRedirectTo: window.location.href }
-  });
-  if(error){
-    document.getElementById('authMsg').textContent = 'Error: ' + error.message;
-  } else {
-    document.getElementById('authForm').innerHTML = `
-      <div style="font-size:1.8rem;margin-bottom:12px">&#9993;</div>
-      <div style="font-weight:800;color:#f5f5f5;font-size:1rem;margin-bottom:8px">Check your email</div>
-      <div style="color:var(--sub);font-size:0.85rem;line-height:1.6">We sent a magic link to <b style="color:#ff8a80">${email}</b>.<br>Tap it on any device to sign in.</div>`;
-  }
-}
-
-async function signOut(){
-  await sb.auth.signOut();
-  currentUser = null;
-  localStorage.removeItem('fhq');
-  document.getElementById('authScreen').style.display = 'flex';
-  document.getElementById('authForm').innerHTML = `
-    <input type="email" id="authEmail" placeholder="your@email.com" style="margin-bottom:10px;text-align:center">
-    <button class="btn btn-p" style="width:100%;padding:12px" onclick="signIn()">Send magic link</button>
-    <div id="authMsg" style="margin-top:14px;font-size:0.82rem;color:var(--sub);font-weight:600;line-height:1.5"></div>`;
-}
-
 // ── Boot ───────────────────────────────────────────────
-sb.auth.onAuthStateChange(async (event, session) => {
-  if(session?.user){
-    currentUser = session.user;
-    document.getElementById('authScreen').style.display = 'none';
-    await load();
-    startApp();
-  }
-});
-
 (async () => {
-  const { data: { session } } = await sb.auth.getSession();
-  if(session?.user){
-    currentUser = session.user;
-    document.getElementById('authScreen').style.display = 'none';
-    await load();
-    startApp();
-  }
+  await load();
+  startApp();
 })();
 
 // ── Quotes ────────────────────────────────────────────
