@@ -535,6 +535,10 @@
 
  /* ── Kanban ── */
  .kanban { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+ @media (max-width: 600px) {
+   .kanban { display: flex; gap: 10px; overflow-x: auto; padding-bottom: 8px; scroll-snap-type: x mandatory; -webkit-overflow-scrolling: touch; }
+   .kanban-col { min-width: 160px; flex-shrink: 0; scroll-snap-align: start; }
+ }
  .kanban-col { display: flex; flex-direction: column; gap: 8px; }
  .kanban-col-header { font-size: 0.68rem; font-weight: 800; text-transform: uppercase; letter-spacing: 2px; padding: 8px 12px; border-radius: 10px; text-align: center; }
  .urgent-header { background: rgba(231,76,60,0.2); color: #ff8a80; border: 1px solid rgba(231,76,60,0.3); }
