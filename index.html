@@ -584,54 +584,12 @@
  </header>
 
  <nav class="tabs">
- <button class="tab on" onclick="go('brain', this)">PLAN B</button>
- <button class="tab" onclick="go('tasks', this)">PLAN A</button>
+ <button class="tab on" onclick="go('brain', this)">Tasks</button>
  <button class="tab" onclick="go('focus', this)"> Focus</button>
  <button class="tab" onclick="go('goals', this)"> Goals</button>
  <button class="tab" onclick="go('mood', this)"> Mood</button>
  </nav>
 
- <!-- ══ TASKS ══ -->
- <div class="panel" id="panel-tasks">
-
- <div class="card">
- <div class="label"> New task</div>
- <div class="row" style="margin-bottom:8px">
- <input type="text" id="tIn" placeholder="What needs doing?" onkeydown="if(event.key==='Enter')addTask()">
- </div>
- <div class="row">
- <select id="tCat">
- <option value="personal"> Personal</option>
- <option value="work"> Work / Biz</option>
- <option value="health"> Health</option>
- <option value="social"> Social</option>
- </select>
- <button class="btn btn-p" onclick="addTask()">Add </button>
- </div>
- </div>
-
- <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
-  <div class="prog-lbl" id="progLbl">0 / 0 done</div>
-  <button class="btn btn-g btn-sm" onclick="clearDone()">Clear done</button>
- </div>
- <div class="prog-wrap" style="margin-bottom:16px"><div class="prog-fill" id="progFill" style="width:0%"></div></div>
-
- <div class="kanban">
-  <div class="kanban-col">
-   <div class="kanban-col-header urgent-header">Urgent</div>
-   <div class="kanban-drop" id="col-urgent" ondragover="onDragOver(event)" ondragleave="onDragLeave(event)" ondrop="onDrop(event,'urgent')"></div>
-  </div>
-  <div class="kanban-col">
-   <div class="kanban-col-header normal-header">Normal</div>
-   <div class="kanban-drop" id="col-normal" ondragover="onDragOver(event)" ondragleave="onDragLeave(event)" ondrop="onDrop(event,'normal')"></div>
-  </div>
-  <div class="kanban-col">
-   <div class="kanban-col-header low-header">Low</div>
-   <div class="kanban-drop" id="col-low" ondragover="onDragOver(event)" ondragleave="onDragLeave(event)" ondrop="onDrop(event,'low')"></div>
-  </div>
- </div>
-
- </div>
 
  <!-- ══ FOCUS ══ -->
  <div class="panel" id="panel-focus">
@@ -713,7 +671,7 @@
 
  </div>
 
- <!-- ══ BRAIN DUMP ══ -->
+ <!-- ══ TASKS (was BRAIN DUMP) ══ -->
  <div class="panel on" id="panel-brain">
 
  <div class="card">
@@ -734,13 +692,25 @@
   </div>
  </div>
 
- <div class="card">
- <div class="label">Daily wins</div>
- <div class="row" style="margin-bottom:12px">
- <input type="text" id="winIn" placeholder="What went well today? Big or tiny!" onkeydown="if(event.key==='Enter')addWin()">
- <button class="btn btn-t" onclick="addWin()">Log it</button>
+ <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;margin-top:4px">
+  <div class="prog-lbl" id="progLbl">0 / 0 done</div>
+  <button class="btn btn-g btn-sm" onclick="clearDone()">Clear done</button>
  </div>
- <div class="task-list" id="winList"></div>
+ <div class="prog-wrap" style="margin-bottom:12px"><div class="prog-fill" id="progFill" style="width:0%"></div></div>
+
+ <div class="kanban">
+  <div class="kanban-col">
+   <div class="kanban-col-header urgent-header">Urgent</div>
+   <div class="kanban-drop" id="col-urgent" ondragover="onDragOver(event)" ondragleave="onDragLeave(event)" ondrop="onDrop(event,'urgent')"></div>
+  </div>
+  <div class="kanban-col">
+   <div class="kanban-col-header normal-header">Normal</div>
+   <div class="kanban-drop" id="col-normal" ondragover="onDragOver(event)" ondragleave="onDragLeave(event)" ondrop="onDrop(event,'normal')"></div>
+  </div>
+  <div class="kanban-col">
+   <div class="kanban-col-header low-header">Low</div>
+   <div class="kanban-drop" id="col-low" ondragover="onDragOver(event)" ondragleave="onDragLeave(event)" ondrop="onDrop(event,'low')"></div>
+  </div>
  </div>
 
  </div>
