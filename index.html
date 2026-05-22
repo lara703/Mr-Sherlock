@@ -536,8 +536,12 @@
  /* ── Kanban ── */
  .kanban { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
  @media (max-width: 600px) {
-   .kanban { display: flex; gap: 10px; overflow-x: auto; padding-bottom: 8px; scroll-snap-type: x mandatory; -webkit-overflow-scrolling: touch; }
-   .kanban-col { min-width: 160px; flex-shrink: 0; scroll-snap-align: start; }
+   .kanban { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; overflow-x: visible; }
+   .kanban-col { min-width: 0; }
+   .kanban-col-header { font-size: 0.58rem; padding: 6px 4px; letter-spacing: 1px; }
+   .kt-txt { font-size: 0.72rem; }
+   .kt-check { width: 14px; height: 14px; }
+   .kt-del { font-size: 0.65rem; }
  }
  .kanban-col { display: flex; flex-direction: column; gap: 8px; }
  .kanban-col-header { font-size: 0.68rem; font-weight: 800; text-transform: uppercase; letter-spacing: 2px; padding: 8px 12px; border-radius: 10px; text-align: center; }
@@ -546,21 +550,21 @@
  .low-header { background: rgba(255,140,0,0.15); color: var(--yellow); border: 1px solid rgba(255,140,0,0.25); }
  .kanban-drop { flex: 1; min-height: 80px; border-radius: 12px; border: 1.5px dashed rgba(255,255,255,0.08); padding: 8px; display: flex; flex-direction: column; gap: 8px; transition: border-color 0.18s, background 0.18s; }
  .kanban-drop.drag-over { border-color: var(--b); background: rgba(192,57,43,0.07); }
- .kanban-task { background: rgba(255,255,255,0.04); border-radius: 8px; padding: 7px 8px; border: 1px solid rgba(255,255,255,0.06); cursor: grab; transition: all 0.18s; display: flex; align-items: center; gap: 7px; min-height: 36px; }
+ /* Single consolidated .kanban-task rule */
+ .kanban-task { background: rgba(255,255,255,0.04); border-radius: 8px; padding: 7px 8px; border: 1px solid rgba(255,255,255,0.06); cursor: default; transition: all 0.18s; display: flex; flex-direction: column; gap: 0; min-height: 36px; }
  .kanban-task:hover { border-color: rgba(231,76,60,0.3); background: rgba(192,57,43,0.07); }
- .kanban-task.dragging { opacity: 0.35; cursor: grabbing; }
+ .kanban-task.dragging { opacity: 0.35; }
  .kanban-task.done { opacity: 0.4; }
  .kanban-task.done .kt-txt { text-decoration: line-through; color: var(--sub); }
  .kt-check { width: 16px; height: 16px; border-radius: 4px; border: 2px solid rgba(255,255,255,0.25); flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 0.55rem; cursor: pointer; transition: all 0.18s; }
  .kanban-task.done .kt-check { background: var(--b); border-color: var(--b); color: white; }
- .kt-body { flex: 1; min-width: 0; }
+ .kt-body { flex: 1; min-width: 0; cursor: pointer; }
  .kt-cat { display: none; }
  .kt-del { background: none; border: none; color: rgba(255,255,255,0.15); cursor: pointer; font-size: 0.75rem; padding: 1px 3px; border-radius: 4px; flex-shrink: 0; transition: all 0.18s; line-height: 1; }
  .kt-del:hover { color: var(--red); }
 
  /* ── Task expand (notes / today / recurring) ── */
- .kt-txt { font-size: 0.78rem; font-weight: 700; line-height: 1.3; overflow: hidden; text-overflow: ellipsis; cursor: pointer; }
- .kanban-task { flex-direction: column; align-items: stretch !important; }
+ .kt-txt { font-size: 0.78rem; font-weight: 700; line-height: 1.3; overflow: hidden; text-overflow: ellipsis; }
  .kt-row { display: flex; align-items: center; gap: 7px; }
  .kt-expand { padding-top: 8px; border-top: 1px solid rgba(255,255,255,0.06); display: flex; flex-direction: column; gap: 8px; }
  .kt-notes { min-height: 54px; resize: none; font-size: 0.75rem !important; padding: 7px 9px !important; border-radius: 8px !important; width: 100%; }
@@ -677,6 +681,7 @@
  <header>
  <div class="header-left">
  <h1>Mr. Sherlock</h1>
+ <div id="dateTimeBar" style="font-size:0.72rem;color:var(--sub);font-weight:700;margin-top:3px;letter-spacing:0.5px"></div>
  </div>
  <div class="stats-row">
  <div class="chip"> <b id="sStreak">0</b> day streak</div>
@@ -952,9 +957,7 @@ const qs = [
  ["It's okay if it took you three attempts. You still did it.",""],
 ];
 function loadQuote(){
- const q = qs[Math.floor(Math.random()*qs.length)];
- document.getElementById('qText').textContent = '"'+q[0]+'"';
- document.getElementById('qBy').textContent = q[1];
+ // quote box removed from UI — no-op kept for safety
 }
 
 // ── Tips ──────────────────────────────────────────────
@@ -1406,15 +1409,15 @@ async function organiseThoughts(){
         text: r.text || '',
         cat: ['personal','work','health','social'].includes(r.cat) ? r.cat : 'personal',
         pri: ['urgent','normal','low'].includes(r.pri) ? r.pri : 'normal',
-        done: false
+        done: false, notes: '', today: false, recurring: null,
+        createdAt: new Date().toISOString()
       })).filter(t => t.text.length > 1);
     } catch(e) {
       console.error('AI error:', e);
       toast('AI error — using smart sort instead');
       pendingThoughts = splitIntoTasks(raw).map((text,i) => {
         const clean = correctTypos(text);
-        let uid2 = Date.now() + i;
-        return { id: uid2, text: clean, cat: guessCat(clean), pri: guessPri(clean), done: false };
+        return { id: Date.now()+i, text: clean, cat: guessCat(clean), pri: guessPri(clean), done: false, notes: '', today: false, recurring: null, createdAt: new Date().toISOString() };
       });
     }
     btn.textContent = orig;
@@ -1426,7 +1429,7 @@ async function organiseThoughts(){
     let uid = Date.now();
     pendingThoughts = chunks.map(text => {
       const clean = correctTypos(text);
-      return { id: uid++, text: clean, cat: guessCat(clean), pri: guessPri(clean), done: false };
+      return { id: uid++, text: clean, cat: guessCat(clean), pri: guessPri(clean), done: false, notes: '', today: false, recurring: null, createdAt: new Date().toISOString() };
     });
   }
 
@@ -1471,7 +1474,7 @@ function confirmThoughts(){
   save(); renderTasks();
   S.dump=''; document.getElementById('dumpTxt').value='';
   pendingThoughts=[]; hidePreviews();
-  toast(count+' thoughts added to PLAN A');
+  toast(count+' tasks added');
 }
 
 function cancelThoughts(){pendingThoughts=[];hidePreviews();}
@@ -1487,8 +1490,8 @@ function addWin(){
 }
 
 function renderWins(){
+ const el=document.getElementById('winList'); if(!el) return;
  const today=new Date().toDateString();
- const el=document.getElementById('winList');
  const wins=S.wins.filter(w=>w.date===today);
  if(!wins.length){el.innerHTML='<div class="empty"><span></span>Log your first win!</div>';return;}
  el.innerHTML=wins.map(w=>`
@@ -1508,7 +1511,7 @@ function logMood(btn,mood){
 }
 
 function renderMoodLog(){
- const el=document.getElementById('moodLog');
+ const el=document.getElementById('moodLog'); if(!el) return;
  if(!S.moods.length){el.innerHTML='<div class="empty" style="padding:12px">No moods logged yet</div>';return;}
  el.innerHTML=[...S.moods].reverse().map(m=>`
  <div class="mood-log-item">
@@ -1889,6 +1892,18 @@ function addQuick(){
 }
 
 // ── Init ───────────────────────────────────────────────
+function updateClock(){
+  const now = new Date();
+  const days = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+  const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const h = now.getHours(), m = now.getMinutes();
+  const ampm = h >= 12 ? 'pm' : 'am';
+  const h12 = h % 12 || 12;
+  const mStr = String(m).padStart(2,'0');
+  const el = document.getElementById('dateTimeBar');
+  if(el) el.textContent = `${days[now.getDay()]} ${now.getDate()} ${months[now.getMonth()]} — ${h12}:${mStr}${ampm}`;
+}
+
 function startApp(){
  loadQuote();
  document.getElementById('tipTxt').textContent=tips[0];
@@ -1897,6 +1912,8 @@ function startApp(){
  renderEnergyAdvice(parseInt(document.getElementById('energyR').value));
  document.getElementById('dumpTxt').value=S.dump||'';
  updateKeyStatus();
+ updateClock();
+ setInterval(updateClock, 30000); // update every 30s
 }
 </script>
 </body>
