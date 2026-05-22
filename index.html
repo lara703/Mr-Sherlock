@@ -10,6 +10,10 @@
 <link id="appIcon" rel="apple-touch-icon">
 <title>Mr. Sherlock</title>
 <script>
+// Apply saved display mode immediately to prevent flash
+(function(){ if(localStorage.getItem('mr_mode')==='light') document.documentElement.classList.add('light'); })();
+</script>
+<script>
 (function(){
   const c = document.createElement('canvas');
   c.width = c.height = 180;
@@ -589,6 +593,87 @@
  .mic-btn.active { background: rgba(231,76,60,0.2); border-color: var(--b); color: #ff8a80; animation: pulse 1.2s infinite; }
  @keyframes pulse { 0%,100%{box-shadow:0 0 0 0 rgba(231,76,60,0.4)} 50%{box-shadow:0 0 0 6px rgba(231,76,60,0)} }
 
+ /* ══════════════════════════════════════
+    LIGHT MODE
+ ══════════════════════════════════════ */
+ html.light {
+   --bg: #f0f0f3;
+   --bg2: #e5e5ea;
+   --card: #ffffff;
+   --card2: #f7f7fa;
+   --border: rgba(0,0,0,0.09);
+   --text: #111111;
+   --sub: #666666;
+ }
+ html.light body { background: var(--bg); }
+ html.light body::before {
+   background:
+     radial-gradient(ellipse at 15% 15%, rgba(192,57,43,0.06) 0%, transparent 55%),
+     radial-gradient(ellipse at 85% 85%, rgba(231,76,60,0.04) 0%, transparent 55%);
+ }
+ /* Buttons & surfaces */
+ html.light .btn-g  { background: rgba(0,0,0,0.06); color: var(--sub); border-color: rgba(0,0,0,0.1); }
+ html.light .btn-g:hover { background: rgba(0,0,0,0.1); color: var(--text); }
+ html.light .btn-t  { background: rgba(0,0,0,0.06); color: var(--text); border-color: rgba(0,0,0,0.12); }
+ html.light .btn-t:hover { background: rgba(0,0,0,0.1); }
+ html.light .tab    { background: rgba(0,0,0,0.05); color: var(--sub); }
+ html.light .tab.on { background: var(--b); color: #fff; }
+ html.light .tab:hover:not(.on) { background: rgba(0,0,0,0.09); color: var(--text); }
+ html.light .chip   { background: var(--card); border-color: var(--border); }
+ html.light .card   { background: var(--card); border-color: var(--border); box-shadow: 0 2px 12px rgba(0,0,0,0.06); }
+ /* Inputs */
+ html.light input, html.light textarea, html.light select {
+   background: var(--card2); border-color: rgba(0,0,0,0.12); color: var(--text);
+ }
+ html.light input::placeholder, html.light textarea::placeholder { color: #aaa; }
+ /* Nav & tabs bar */
+ html.light nav { background: rgba(240,240,243,0.92); border-top-color: rgba(0,0,0,0.08); }
+ /* Settings modal backdrop */
+ html.light .settings-modal { background: rgba(0,0,0,0.45); }
+ html.light .settings-box   { box-shadow: 0 20px 60px rgba(0,0,0,0.2); }
+ html.light .key-status.inactive { background: rgba(0,0,0,0.06); border-color: rgba(0,0,0,0.1); }
+ html.light .settings-gear  { background: rgba(0,0,0,0.06); border-color: rgba(0,0,0,0.1); }
+ html.light .settings-gear:hover { background: rgba(0,0,0,0.1); }
+ /* Kanban */
+ html.light .kanban-task    { background: var(--card); border-color: rgba(0,0,0,0.08); }
+ html.light .kanban-task:hover { border-color: rgba(0,0,0,0.15); }
+ html.light .normal-header  { background: rgba(0,0,0,0.06); color: var(--sub); border-color: rgba(0,0,0,0.1); }
+ html.light .kt-flag, html.light .kt-recur { background: rgba(0,0,0,0.05); border-color: rgba(0,0,0,0.1); }
+ html.light .kt-notes       { background: rgba(0,0,0,0.04); border-color: rgba(0,0,0,0.1); color: var(--text); }
+ /* Mood / moods */
+ html.light .mood           { background: rgba(0,0,0,0.04); border-color: rgba(0,0,0,0.09); }
+ html.light .mood.on        { background: rgba(192,57,43,0.1); border-color: var(--b); }
+ html.light .mood-log-item  { background: rgba(0,0,0,0.04); }
+ /* TTS button */
+ html.light .tts-btn        { background: rgba(0,0,0,0.05); border-color: rgba(0,0,0,0.1); }
+ html.light .tts-btn:hover  { background: rgba(192,57,43,0.08); border-color: var(--b); }
+ /* Misc */
+ html.light .mic-btn        { background: rgba(0,0,0,0.06); border-color: rgba(0,0,0,0.1); }
+ html.light .quick-box      { background: var(--card); border-top-color: rgba(0,0,0,0.1); box-shadow: 0 -8px 40px rgba(0,0,0,0.12); }
+ html.light .fc             { background: rgba(0,0,0,0.05); border-color: rgba(0,0,0,0.1); }
+ html.light .goal-item, html.light .idea-item { background: rgba(0,0,0,0.04); }
+ html.light .reward         { background: var(--card2); border-color: rgba(0,0,0,0.1); }
+ html.light .overlay        { background: rgba(0,0,0,0.4); }
+ html.light .quick-modal    { background: rgba(0,0,0,0.45); }
+ /* Fix hardcoded dark text colours that appear in generated HTML */
+ html.light #energyAdviceBody { color: var(--text); }
+ html.light #moodAiBody        { color: #333 !important; }
+
+ /* Mode toggle buttons */
+ .mode-toggle { display:flex; gap:8px; }
+ .mode-btn {
+   flex:1; display:flex; align-items:center; justify-content:center; gap:6px;
+   padding:9px 12px; border-radius:12px; border:1.5px solid var(--border);
+   background:rgba(255,255,255,0.05); color:var(--sub);
+   font-family:'Nunito',sans-serif; font-weight:800; font-size:0.82rem;
+   cursor:pointer; transition:all 0.18s;
+ }
+ .mode-btn:hover { background:rgba(255,255,255,0.1); color:var(--text); }
+ .mode-btn.on    { background:var(--b); color:#fff; border-color:var(--b); box-shadow:0 3px 14px rgba(192,57,43,0.35); }
+ html.light .mode-btn        { background:rgba(0,0,0,0.05); }
+ html.light .mode-btn:hover  { background:rgba(0,0,0,0.1); color:var(--text); }
+ html.light .mode-btn.on     { background:var(--b); color:#fff; }
+
  /* ── Settings modal ── */
  .settings-modal {
    position: fixed; inset: 0; z-index: 200;
@@ -1035,8 +1120,17 @@
       <span id="keyStatus" class="key-status inactive">No key set</span>
     </div>
 
-    <!-- Colour themes -->
+    <!-- Display mode -->
     <div>
+      <p style="font-size:0.72rem;font-weight:800;text-transform:uppercase;letter-spacing:1.5px;color:var(--sub);margin-bottom:10px">Display mode</p>
+      <div class="mode-toggle">
+        <button class="mode-btn on" id="modeDark" onclick="applyMode('dark')">🌙 Dark</button>
+        <button class="mode-btn" id="modeLight" onclick="applyMode('light')">☀️ Light</button>
+      </div>
+    </div>
+
+    <!-- Colour themes -->
+    <div style="border-top:1px solid var(--border);padding-top:14px">
       <p style="font-size:0.72rem;font-weight:800;text-transform:uppercase;letter-spacing:1.5px;color:var(--sub);margin-bottom:10px">Colour theme</p>
       <div class="theme-grid" id="themeGrid">
         <div>
@@ -1382,6 +1476,35 @@ function applyTheme(name){
 function loadTheme(){
   const saved = localStorage.getItem('mr_theme') || 'red';
   applyTheme(saved);
+}
+
+// ── Display mode (light / dark) ────────────────────────
+function applyMode(mode){
+  const html = document.documentElement;
+  if(mode === 'light'){
+    html.classList.add('light');
+  } else {
+    html.classList.remove('light');
+  }
+  localStorage.setItem('mr_mode', mode);
+  // Update toggle button states
+  const dBtn = document.getElementById('modeDark');
+  const lBtn = document.getElementById('modeLight');
+  if(dBtn) dBtn.classList.toggle('on', mode === 'dark');
+  if(lBtn) lBtn.classList.toggle('on', mode === 'light');
+  toast(mode === 'light' ? '☀️ Light mode' : '🌙 Dark mode');
+}
+
+function loadMode(){
+  const saved = localStorage.getItem('mr_mode') || 'dark';
+  // Apply class silently without toast
+  const html = document.documentElement;
+  if(saved === 'light') html.classList.add('light');
+  // Sync buttons
+  const dBtn = document.getElementById('modeDark');
+  const lBtn = document.getElementById('modeLight');
+  if(dBtn) dBtn.classList.toggle('on', saved === 'dark');
+  if(lBtn) lBtn.classList.toggle('on', saved === 'light');
 }
 
 // ── Anthropic API key — stored in localStorage, never in code ──
@@ -2674,6 +2797,7 @@ function startApp(){
  updateClock();
  setInterval(updateClock, 30000);
  loadTheme();
+ loadMode();
 }
 </script>
 </body>
