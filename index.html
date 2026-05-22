@@ -559,40 +559,10 @@
  .kt-del { background: none; border: none; color: rgba(255,255,255,0.15); cursor: pointer; font-size: 0.75rem; padding: 1px 3px; border-radius: 4px; flex-shrink: 0; transition: all 0.18s; line-height: 1; }
  .kt-del:hover { color: var(--red); }
 
- /* ── Lock screen ── */
- #lockScreen {
-   position: fixed; inset: 0; background: var(--bg); z-index: 9999;
-   display: flex; flex-direction: column; align-items: center; justify-content: center;
-   gap: 24px; padding: 40px;
- }
- #lockScreen h2 {
-   font-size: 2rem; font-weight: 900;
-   background: linear-gradient(135deg, #e74c3c, #c0392b);
-   -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
- }
- #lockScreen p { color: var(--sub); font-size: 0.85rem; font-weight: 600; text-align: center; line-height: 1.6; }
- .face-id-btn {
-   width: 80px; height: 80px; border-radius: 50%;
-   background: linear-gradient(135deg, var(--a), var(--c));
-   border: none; cursor: pointer;
-   display: flex; align-items: center; justify-content: center;
-   box-shadow: 0 0 40px rgba(231,76,60,0.4);
-   font-size: 2rem;
-   transition: transform 0.2s, box-shadow 0.2s;
- }
- .face-id-btn:active { transform: scale(0.93); }
- #lockMsg { font-size: 0.78rem; color: var(--sub); font-weight: 700; min-height: 20px; text-align: center; }
 </style>
 </head>
 <body>
 
-<!-- ── Lock screen ── -->
-<div id="lockScreen">
-  <h2>Mr. Sherlock</h2>
-  <button class="face-id-btn" onclick="triggerFaceID()" title="Unlock">&#128065;</button>
-  <div id="lockMsg">Tap to unlock with Face ID</div>
-  <button class="btn btn-g btn-sm" id="setupFaceBtn" style="display:none" onclick="setupFaceID()">Set up Face ID</button>
-</div>
 
 <canvas id="confetti"></canvas>
 <div class="overlay" id="overlay" onclick="closeReward()"></div>
@@ -830,75 +800,10 @@ async function load(){
   checkNewDay();
 }
 
-// ── Face ID ────────────────────────────────────────────
-const RP_ID = location.hostname;
-
-function unlockApp(){
-  document.getElementById('lockScreen').style.display = 'none';
-}
-
-function setLockMsg(msg){ document.getElementById('lockMsg').textContent = msg; }
-
-async function setupFaceID(){
-  setLockMsg('Setting up Face ID...');
-  try {
-    const challenge = crypto.getRandomValues(new Uint8Array(32));
-    const userId    = crypto.getRandomValues(new Uint8Array(16));
-    const cred = await navigator.credentials.create({ publicKey: {
-      challenge,
-      rp: { name: 'Mr. Sherlock', id: RP_ID },
-      user: { id: userId, name: 'lara', displayName: 'Lara' },
-      pubKeyCredParams: [{ alg: -7, type: 'public-key' }],
-      authenticatorSelection: { authenticatorAttachment: 'platform', userVerification: 'required' },
-      timeout: 60000,
-    }});
-    localStorage.setItem('faceIdCredId', btoa(String.fromCharCode(...new Uint8Array(cred.rawId))));
-    setLockMsg('Face ID set up! Tap to unlock.');
-    document.getElementById('setupFaceBtn').style.display = 'none';
-    triggerFaceID();
-  } catch(e) {
-    setLockMsg('Setup failed. Try again.');
-    console.error(e);
-  }
-}
-
-async function triggerFaceID(){
-  const credIdB64 = localStorage.getItem('faceIdCredId');
-  if(!credIdB64){
-    // Not set up yet — show setup button
-    setLockMsg('Face ID not set up yet.');
-    document.getElementById('setupFaceBtn').style.display = 'inline-block';
-    return;
-  }
-  if(!window.PublicKeyCredential){ unlockApp(); return; } // browser doesn't support — just open
-  setLockMsg('Waiting for Face ID...');
-  try {
-    const challenge = crypto.getRandomValues(new Uint8Array(32));
-    const credId    = Uint8Array.from(atob(credIdB64), c=>c.charCodeAt(0));
-    await navigator.credentials.get({ publicKey: {
-      challenge,
-      rpId: RP_ID,
-      allowCredentials: [{ id: credId, type: 'public-key' }],
-      userVerification: 'required',
-      timeout: 60000,
-    }});
-    unlockApp();
-  } catch(e) {
-    if(e.name === 'NotAllowedError'){
-      setLockMsg('Face ID cancelled. Tap to try again.');
-    } else {
-      setLockMsg('Could not unlock. Tap to retry.');
-    }
-    console.error(e);
-  }
-}
-
 // ── Boot ───────────────────────────────────────────────
 (async () => {
   await load();
   startApp();
-  // Trigger Face ID automatically on load
-  triggerFaceID();
 })();
 
 // ── Quotes ────────────────────────────────────────────
