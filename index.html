@@ -597,60 +597,60 @@
     LIGHT MODE
  ══════════════════════════════════════ */
  html.light {
-   --bg:     #8c5a35;
-   --bg2:    #7a4828;
-   --card:   #f2dfc0;
-   --card2:  #e8d0a8;
-   --border: rgba(80,35,5,0.18);
-   --text:   #1c0a02;
-   --sub:    #7a4e28;
+   --bg:     #c9996a;
+   --bg2:    #b8825a;
+   --card:   #e8c998;
+   --card2:  #ddb878;
+   --border: rgba(80,40,5,0.2);
+   --text:   #1e0c02;
+   --sub:    #7a4e20;
  }
  html.light body { background: var(--bg); }
  html.light body::before {
    background:
-     radial-gradient(ellipse at 15% 15%, rgba(40,15,0,0.25) 0%, transparent 55%),
-     radial-gradient(ellipse at 85% 85%, rgba(192,57,43,0.1) 0%, transparent 55%);
+     radial-gradient(ellipse at 15% 15%, rgba(60,25,0,0.18) 0%, transparent 55%),
+     radial-gradient(ellipse at 85% 85%, rgba(160,60,20,0.1) 0%, transparent 55%);
  }
  /* Buttons & surfaces */
- html.light .btn-g  { background: rgba(0,0,0,0.06); color: var(--sub); border-color: rgba(0,0,0,0.1); }
- html.light .btn-g:hover { background: rgba(0,0,0,0.1); color: var(--text); }
- html.light .btn-t  { background: rgba(0,0,0,0.06); color: var(--text); border-color: rgba(0,0,0,0.12); }
- html.light .btn-t:hover { background: rgba(0,0,0,0.1); }
- html.light .tabs   { background: #6e3e1e; border-color: rgba(30,10,0,0.35); }
- html.light .tab    { background: transparent; color: var(--sub); }
+ html.light .btn-g  { background: rgba(80,35,0,0.1); color: var(--sub); border-color: rgba(80,35,0,0.18); }
+ html.light .btn-g:hover { background: rgba(80,35,0,0.18); color: var(--text); }
+ html.light .btn-t  { background: rgba(80,35,0,0.08); color: var(--text); border-color: rgba(80,35,0,0.16); }
+ html.light .btn-t:hover { background: rgba(80,35,0,0.15); }
+ html.light .tabs   { background: #a06030; border-color: rgba(50,20,0,0.3); }
+ html.light .tab    { background: transparent; color: rgba(255,220,180,0.7); }
  html.light .tab.on { background: var(--b); color: #fff; }
- html.light .tab:hover:not(.on) { background: rgba(100,60,15,0.1); color: var(--text); }
+ html.light .tab:hover:not(.on) { background: rgba(255,200,140,0.15); color: #fff; }
  html.light .chip   { background: var(--card); border-color: var(--border); }
- html.light .card   { background: var(--card); border-color: var(--border); box-shadow: 0 2px 12px rgba(80,40,10,0.1); }
+ html.light .card   { background: var(--card); border-color: rgba(80,40,5,0.15); box-shadow: 0 2px 14px rgba(60,25,0,0.15); }
  /* Inputs */
  html.light input, html.light textarea, html.light select {
-   background: var(--card2); border-color: rgba(100,60,15,0.18); color: var(--text);
+   background: rgba(255,220,160,0.45); border-color: rgba(80,40,5,0.2); color: var(--text);
  }
- html.light input::placeholder, html.light textarea::placeholder { color: #8a5530; }
+ html.light input::placeholder, html.light textarea::placeholder { color: #9a6a38; }
  /* Nav & tabs bar */
- html.light nav { background: rgba(90,50,22,0.97); border-top-color: rgba(30,10,0,0.3); }
- /* Settings modal backdrop */
- html.light .settings-modal { background: rgba(0,0,0,0.45); }
- html.light .settings-box   { box-shadow: 0 20px 60px rgba(0,0,0,0.2); }
- html.light .key-status.inactive { background: rgba(0,0,0,0.06); border-color: rgba(0,0,0,0.1); }
- html.light .settings-gear  { background: rgba(0,0,0,0.06); border-color: rgba(0,0,0,0.1); }
- html.light .settings-gear:hover { background: rgba(0,0,0,0.1); }
+ html.light nav { background: rgba(140,78,30,0.97); border-top-color: rgba(50,20,0,0.3); }
+ /* Settings */
+ html.light .settings-modal { background: rgba(40,15,0,0.55); }
+ html.light .settings-box   { box-shadow: 0 20px 60px rgba(40,15,0,0.35); }
+ html.light .key-status.inactive { background: rgba(80,35,0,0.1); border-color: rgba(80,35,0,0.18); }
+ html.light .settings-gear  { background: rgba(80,35,0,0.1); border-color: rgba(80,35,0,0.18); }
+ html.light .settings-gear:hover { background: rgba(80,35,0,0.2); }
  /* Kanban */
- html.light .kanban-task    { background: var(--card); border-color: rgba(0,0,0,0.08); }
- html.light .kanban-task:hover { border-color: rgba(0,0,0,0.15); }
- html.light .normal-header  { background: rgba(0,0,0,0.06); color: var(--sub); border-color: rgba(0,0,0,0.1); }
- html.light .kt-flag, html.light .kt-recur { background: rgba(0,0,0,0.05); border-color: rgba(0,0,0,0.1); }
- html.light .kt-notes       { background: rgba(0,0,0,0.04); border-color: rgba(0,0,0,0.1); color: var(--text); }
- /* Mood / moods */
- html.light .mood           { background: rgba(0,0,0,0.04); border-color: rgba(0,0,0,0.09); }
- html.light .mood.on        { background: rgba(192,57,43,0.1); border-color: var(--b); }
- html.light .mood-log-item  { background: rgba(0,0,0,0.04); }
- /* TTS button */
- html.light .tts-btn        { background: rgba(0,0,0,0.05); border-color: rgba(0,0,0,0.1); }
- html.light .tts-btn:hover  { background: rgba(192,57,43,0.08); border-color: var(--b); }
+ html.light .kanban-task    { background: var(--card); border-color: rgba(80,40,5,0.15); }
+ html.light .kanban-task:hover { border-color: rgba(80,40,5,0.28); }
+ html.light .normal-header  { background: rgba(80,35,0,0.12); color: var(--sub); border-color: rgba(80,35,0,0.18); }
+ html.light .kt-flag, html.light .kt-recur { background: rgba(80,35,0,0.08); border-color: rgba(80,35,0,0.15); }
+ html.light .kt-notes       { background: rgba(255,210,150,0.35); border-color: rgba(80,40,5,0.15); color: var(--text); }
+ /* Mood */
+ html.light .mood           { background: rgba(80,35,0,0.08); border-color: rgba(80,35,0,0.16); }
+ html.light .mood.on        { background: rgba(192,57,43,0.15); border-color: var(--b); }
+ html.light .mood-log-item  { background: rgba(80,35,0,0.07); }
+ /* TTS */
+ html.light .tts-btn        { background: rgba(80,35,0,0.08); border-color: rgba(80,35,0,0.16); }
+ html.light .tts-btn:hover  { background: rgba(192,57,43,0.12); border-color: var(--b); }
  /* Misc */
- html.light .mic-btn        { background: rgba(0,0,0,0.06); border-color: rgba(0,0,0,0.1); }
- html.light .quick-box      { background: var(--card); border-top-color: rgba(0,0,0,0.1); box-shadow: 0 -8px 40px rgba(0,0,0,0.12); }
+ html.light .mic-btn        { background: rgba(80,35,0,0.1); border-color: rgba(80,35,0,0.18); }
+ html.light .quick-box      { background: var(--card2); border-top-color: rgba(50,20,0,0.2); box-shadow: 0 -8px 40px rgba(50,20,0,0.2); }
  html.light .fc             { background: rgba(0,0,0,0.05); border-color: rgba(0,0,0,0.1); }
  html.light .goal-item, html.light .idea-item { background: rgba(0,0,0,0.04); }
  html.light .reward         { background: var(--card2); border-color: rgba(0,0,0,0.1); }
