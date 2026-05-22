@@ -24,24 +24,14 @@
   glow.addColorStop(1, 'rgba(0,0,0,0)');
   x.fillStyle = glow;
   x.fillRect(0, 0, 180, 180);
-  // Magnifying glass circle
-  x.strokeStyle = '#e74c3c';
-  x.lineWidth = 11;
-  x.lineCap = 'round';
+  // Exclamation mark
+  x.fillStyle = '#e74c3c';
   x.beginPath();
-  x.arc(82, 78, 38, 0, Math.PI * 2);
-  x.stroke();
-  // Handle
+  x.roundRect(76, 30, 28, 90, 14);
+  x.fill();
   x.beginPath();
-  x.moveTo(110, 106);
-  x.lineTo(138, 134);
-  x.stroke();
-  // S letter
-  x.fillStyle = '#ffffff';
-  x.font = '900 38px sans-serif';
-  x.textAlign = 'center';
-  x.textBaseline = 'middle';
-  x.fillText('S', 82, 79);
+  x.arc(90, 148, 16, 0, Math.PI * 2);
+  x.fill();
   document.getElementById('appIcon').href = c.toDataURL('image/png');
 })();
 </script>
